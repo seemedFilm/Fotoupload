@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);ANDROID_1;ANDROID_2;ANDROID_3;ANDROID_4;ANDROID_5;ANDROID_6;ANDROID_7;ANDROID_8;ANDROID_9;ANDROID_10;ANDROID_11;ANDROID_12;ANDROID_13;ANDROID_14;ANDROID_15;ANDROID_16;ANDROID_17;ANDROID_18;ANDROID_19;ANDROID_20;ANDROID_21;ANDROID_22;ANDROID_23;ANDROID_24;ANDROID_25;ANDROID_26;ANDROID_27;ANDROID_28;ANDROID_29;ANDROID_30;ANDROID_31;ANDROID_32;ANDROID_33;ANDROID_34;ANDROID_35;ANDROID_36</DefineConstants>
+  </PropertyGroup>
+  <!-- Classes -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Activity.Compose.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Activity.Ktx.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Activity.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Annotation.Experimental.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Arch.Core.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Autofill.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Animation.Core.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Animation.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Foundation.Layout.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Foundation.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Material.Icons.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Material.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Material.Ripple.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Material3.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Runtime.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.Runtime.Saveable.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Geometry.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Graphics.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Test.Manifest.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Text.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Tooling.Data.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Tooling.Preview.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Tooling.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Unit.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Compose.UI.Util.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Core.Ktx.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Core.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Customview.Poolingcontainer.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Emoji2.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Graphics.Path.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Interpolator.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Ktx.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Livedata.Core.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Process.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Runtime.Compose.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Runtime.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Viewmodel.Ktx.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Viewmodel.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Lifecycle.Viewmodel.Savedstate.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Profileinstaller.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Savedstate.Ktx.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Savedstate.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Startup.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Tracing.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Androidx.Versionedparcelable.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Com.PatrickL.Fotoupload_android.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Com.PatrickL.Fotoupload_android.R.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Java.Interop.__TypeRegistrations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Kotlin.Coroutines.Jvm.Internal.DebugProbesKt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Cli.CommandLineArgumentException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Cli.CommandLineOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Cli.CommandLineParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Cli.ParsedCommandLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Cli.ParsedCommandLineOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Internal.File.Locking.ExclusiveFileAccessManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Internal.File.PathTraversalChecker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Util.Internal.WrapperDistributionUrlConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.Download.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.GradleUserHomeLookup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.GradleWrapperMain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.Install.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.Logger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.PathAssembler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.PropertiesFileHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.WrapperConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Org.Gradle.Wrapper.WrapperExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)__NamespaceMapping__.cs" />
+  </ItemGroup>
+  <!-- Enums -->
+  <ItemGroup />
+</Project>

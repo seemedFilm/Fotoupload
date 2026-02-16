@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Fotoupload-Android</string>
+    <string name="btnupload">btnUpload</string>
+    <string name="status">Status</string>
+    <string name="select_pictures">Select Pictures</string>
+    <string name="device_fotoupload">$device FotoUpload</string>
+    <string name="fotoupload">Fotoupload</string>
+</resources>
