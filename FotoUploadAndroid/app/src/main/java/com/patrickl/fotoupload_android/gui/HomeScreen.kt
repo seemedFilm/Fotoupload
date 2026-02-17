@@ -1,4 +1,5 @@
 package com.patrickl.fotoupload_android
+
 import androidx.activity.result.PickVisualMediaRequest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,6 +25,8 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var serverUrl by remember { mutableStateOf("192.168.1.23") }
+
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -57,7 +60,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             onClick = {
                 launcher.launch(
                     PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
                     )
                 )
             }
@@ -81,7 +84,12 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
-
+        Spacer(modifier = Modifier.height(10.dp))
+        Button(
+            onClick = {}
+        ){
+            Text("Hochladen")
+        }
 
     }
 }
