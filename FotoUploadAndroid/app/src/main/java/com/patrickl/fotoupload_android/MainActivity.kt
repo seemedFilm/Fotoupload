@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.patrickl.fotoupload_android.ui.theme.FotoUploadAndroidTheme
-import com.patrickl.fotoupload_android.gui.HomeScreen
+//import com.patrickl.fotoupload_android.gui.HomeScreen
 
 class MainActivity : ComponentActivity() {
 
