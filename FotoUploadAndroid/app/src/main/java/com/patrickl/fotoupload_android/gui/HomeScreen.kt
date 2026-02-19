@@ -1,5 +1,8 @@
 package com.patrickl.fotoupload_android
 
+import com.patrickl.fotoupload_android.network.UploadService
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import androidx.activity.result.PickVisualMediaRequest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
+import com.patrickl.fotoupload_android.config.ApiConfig
 
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -25,8 +29,9 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    var serverUrl by remember { mutableStateOf("192.168.1.23") }
-
+    var serverUrl by remember { mutableStateOf("192.168.1.190") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -67,8 +72,22 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         ) {
             Text("Mehrere Bilder auswählen")
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+        Button(
+            onClick = {
+                scope.launch {
+                    val result = UploadService.uploadMultipleImages(
+                        context,
+                        selectedImages,
+                        ApiConfig.BASE_URL
 
+                    )
+                    println(result)
+                }
+            }
+        ) {
+            Text("Hochladen")
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             modifier = Modifier.fillMaxSize(),
@@ -84,12 +103,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
-        Button(
-            onClick = {}
-        ){
-            Text("Hochladen")
-        }
+
 
     }
 }
