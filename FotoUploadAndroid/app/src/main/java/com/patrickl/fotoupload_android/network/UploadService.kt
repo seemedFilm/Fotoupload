@@ -1,5 +1,5 @@
 package com.patrickl.fotoupload_android.network
-
+import com.patrickl.fotoupload_android.network.UploadSummary
 import com.patrickl.fotoupload_android.config.ApiConfig
 import android.content.Context
 import android.net.Uri
@@ -19,7 +19,7 @@ object UploadService {
         context: Context,
         uris: List<Uri>,
         serverUrl: String
-    ): String = withContext(Dispatchers.IO) {
+    ): UploadSummary = withContext(Dispatchers.IO) {
 
         val multipartBuilder = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -39,7 +39,7 @@ object UploadService {
                 .asRequestBody("image/*".toMediaTypeOrNull())
 
             multipartBuilder.addFormDataPart(
-                "files[]",    // Muss zu deiner PHP passen
+                "files[]",
                 tempFile.name,
                 requestFile
             )
@@ -48,13 +48,42 @@ object UploadService {
         val requestBody = multipartBuilder.build()
 
         val request = Request.Builder()
-//            .url("http://$serverUrl/upload.php")
             .url("${ApiConfig.BASE_URL}/upload.php")
             .post(requestBody)
             .build()
 
         client.newCall(request).execute().use { response ->
-            response.body?.string() ?: "Keine Serverantwort"
+
+            val body = response.body?.string()
+
+            println("=========== SERVER RESPONSE ===========")
+            println(body)
+            println("HTTP CODE: ${response.code}")
+            println("=======================================")
+
+            if (!response.isSuccessful || body == null) {
+                return@use UploadSummary(
+                    total = uris.size,
+                    success = 0,
+                    failed = uris.size
+                )
+            }
+
+            var successCount = 0
+            var failCount = 0
+
+            Regex("\"status\"\\s*:\\s*\"(ok|error)\"")
+                .findAll(body)
+                .forEach {
+                    if (it.groupValues[1] == "ok") successCount++
+                    else failCount++
+                }
+
+            UploadSummary(
+                total = uris.size,
+                success = successCount,
+                failed = failCount
+            )
         }
     }
 }

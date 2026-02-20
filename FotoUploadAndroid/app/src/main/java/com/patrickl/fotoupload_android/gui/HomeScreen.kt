@@ -23,15 +23,19 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-
+import com.patrickl.fotoupload_android.network.UploadSummary
 
 @Preview
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    var serverUrl by remember { mutableStateOf("192.168.1.190") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var isUploading by remember { mutableStateOf(false) }
+//    var uploadResult by remember { mutableStateOf<String?>(null) }
+    var uploadSummary by remember {
+        mutableStateOf<UploadSummary?>(value = null)
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -43,7 +47,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        //verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(25.dp))
@@ -55,10 +58,10 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
         )
         Text(
-            text = "url",
+            text = "${ApiConfig.BASE_URL}",
             style = MaterialTheme.typography.headlineLarge,
-            fontSize = 50.sp,
-            color = Color.Red
+            fontSize = 30.sp,
+            color = Color.Green
         )
         Spacer(modifier = Modifier.height(50.dp))
         Button(
@@ -73,20 +76,43 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             Text("Mehrere Bilder auswählen")
         }
         Spacer(modifier = Modifier.height(10.dp))
+        //ApiConfig.BASE_URL
         Button(
             onClick = {
                 scope.launch {
-                    val result = UploadService.uploadMultipleImages(
-                        context,
-                        selectedImages,
-                        ApiConfig.BASE_URL
+                    try {
+                        isUploading = true
 
-                    )
-                    println(result)
+                        val result = UploadService.uploadMultipleImages(
+                            context,
+                            selectedImages,
+                            ApiConfig.BASE_URL
+                        )
+
+                        uploadSummary = result
+
+                    } catch (e: Exception) {
+                        uploadSummary = UploadSummary(
+                            total = selectedImages.size,
+                            success = 0,
+                            failed = selectedImages.size,
+                            errorMessage = e.message
+                        )
+                    }
                 }
-            }
+            },
+            enabled = !isUploading && selectedImages.isNotEmpty()
         ) {
             Text("Hochladen")
+        }
+        if (isUploading) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CircularProgressIndicator()
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Upload läuft...")
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -103,7 +129,30 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+    if (uploadSummary != null) {
 
+        val summary = uploadSummary!!
 
+        AlertDialog(
+            onDismissRequest = { uploadSummary = null },
+            confirmButton = {
+                TextButton(onClick = { uploadSummary = null }) {
+                    Text("OK")
+                }
+            },
+            title = {
+                Text("Upload abgeschlossen")
+            },
+            text = {
+                Text(
+                    """
+                Gesamt: ${summary.total}
+                Erfolgreich: ${summary.success}
+                Fehlerhaft: ${summary.failed}
+                """.trimIndent()
+                )
+            }
+        )
     }
 }
