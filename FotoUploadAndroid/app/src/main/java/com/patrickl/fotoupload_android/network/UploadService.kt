@@ -48,7 +48,7 @@ object UploadService {
         val requestBody = multipartBuilder.build()
 
         val request = Request.Builder()
-            .url("${ApiConfig.BASE_URL}/upload.php")
+            .url("$serverUrl/upload.php")
             .post(requestBody)
             .build()
 

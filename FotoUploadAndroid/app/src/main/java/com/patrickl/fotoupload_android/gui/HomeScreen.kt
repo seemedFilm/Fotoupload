@@ -1,6 +1,8 @@
 package com.patrickl.fotoupload_android
 
-import com.patrickl.fotoupload_android.network.UploadService
+import com.patrickl.fotoupload_android.viewmodel.UploadViewModel
+import com.patrickl.fotoupload_android.viewmodel.UploadUiState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import androidx.activity.result.PickVisualMediaRequest
@@ -22,27 +24,26 @@ import com.patrickl.fotoupload_android.config.ApiConfig
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.patrickl.fotoupload_android.network.UploadSummary
 
 @Preview
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: UploadViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+
+    val uiState by viewModel.uiState.collectAsState()
+
     var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var isUploading by remember { mutableStateOf(false) }
-//    var uploadResult by remember { mutableStateOf<String?>(null) }
-    var uploadSummary by remember {
-        mutableStateOf<UploadSummary?>(value = null)
-    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         selectedImages = uris
     }
-    Spacer(modifier = Modifier.height(20.dp))
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,44 +76,17 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         ) {
             Text("Mehrere Bilder auswählen")
         }
+
         Spacer(modifier = Modifier.height(10.dp))
-        //ApiConfig.BASE_URL
+
         Button(
             onClick = {
-                scope.launch {
-                    try {
-                        isUploading = true
-
-                        val result = UploadService.uploadMultipleImages(
-                            context,
-                            selectedImages,
-                            ApiConfig.BASE_URL
-                        )
-
-                        uploadSummary = result
-
-                    } catch (e: Exception) {
-                        uploadSummary = UploadSummary(
-                            total = selectedImages.size,
-                            success = 0,
-                            failed = selectedImages.size,
-                            errorMessage = e.message
-                        )
-                    }
-                }
+                viewModel.uploadImages(context, selectedImages)
             },
-            enabled = !isUploading && selectedImages.isNotEmpty()
+            enabled = uiState !is UploadUiState.Loading &&
+                    selectedImages.isNotEmpty()
         ) {
             Text("Hochladen")
-        }
-        if (isUploading) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CircularProgressIndicator()
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text("Upload läuft...")
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -129,30 +103,54 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
+
+        if (uiState is UploadUiState.Loading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Upload läuft...")
+        }
     }
-    if (uploadSummary != null) {
 
-        val summary = uploadSummary!!
-
-        AlertDialog(
-            onDismissRequest = { uploadSummary = null },
-            confirmButton = {
-                TextButton(onClick = { uploadSummary = null }) {
-                    Text("OK")
+    when (uiState) {
+        is UploadUiState.Success -> {
+            val summary = (uiState as UploadUiState.Success).summary
+            AlertDialog(
+                onDismissRequest = { viewModel.resetState() },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.resetState()
+                        selectedImages = emptyList()
+                    }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Upload abgeschlossen") },
+                text = {
+                    Text(
+                        """
+                        Gesamt: ${summary.total}
+                        Erfolgreich: ${summary.success}
+                        Fehlerhaft: ${summary.failed}
+                        """.trimIndent()
+                    )
                 }
-            },
-            title = {
-                Text("Upload abgeschlossen")
-            },
-            text = {
-                Text(
-                    """
-                Gesamt: ${summary.total}
-                Erfolgreich: ${summary.success}
-                Fehlerhaft: ${summary.failed}
-                """.trimIndent()
-                )
-            }
-        )
+            )
+        }
+
+        is UploadUiState.Error -> {
+            val message = (uiState as UploadUiState.Error).message
+            AlertDialog(
+                onDismissRequest = { viewModel.resetState() },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.resetState() }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Fehler") },
+                text = { Text(message) }
+            )
+        }
+        else -> {}
     }
 }

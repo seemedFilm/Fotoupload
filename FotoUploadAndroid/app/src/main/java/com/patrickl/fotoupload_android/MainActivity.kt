@@ -46,7 +46,6 @@ fun App() {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun AppPreview() {
