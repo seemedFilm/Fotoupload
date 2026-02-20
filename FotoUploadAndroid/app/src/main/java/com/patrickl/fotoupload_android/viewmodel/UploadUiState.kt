@@ -1,10 +1,11 @@
 package com.patrickl.fotoupload_android.viewmodel
 
+import android.net.Uri
 import com.patrickl.fotoupload_android.network.UploadSummary
 
-sealed class UploadUiState {
-    object Idle : UploadUiState()
-    object Loading : UploadUiState()
-    data class Success(val summary: UploadSummary) : UploadUiState()
-    data class Error(val message: String) : UploadUiState()
-}
+data class UploadUiState(
+    val selectedImages: List<Uri> = emptyList(),
+    val isUploading: Boolean = false,
+    val uploadSummary: UploadSummary? = null,
+    val errorMessage: String? = null
+)

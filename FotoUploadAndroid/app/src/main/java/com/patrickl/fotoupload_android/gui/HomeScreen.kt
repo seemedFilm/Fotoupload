@@ -30,22 +30,20 @@ import com.patrickl.fotoupload_android.network.UploadSummary
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: UploadViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: UploadViewModel = viewModel()
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
-
-    var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
-        selectedImages = uris
+        viewModel.setSelectedImages(uris)
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -59,41 +57,42 @@ fun HomeScreen(
 
         )
         Text(
-            text = "${ApiConfig.BASE_URL}",
+            text = ApiConfig.BASE_URL,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = 30.sp,
             color = Color.Green
         )
         Spacer(modifier = Modifier.height(50.dp))
-        Button(
-            onClick = {
-                launcher.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
-                    )
+
+        Button(onClick = {
+            launcher.launch(
+                PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageAndVideo
                 )
-            }
-        ) {
+            )
+        }) {
             Text("Mehrere Bilder auswählen")
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
         Button(
-            onClick = {
-                viewModel.uploadImages(context, selectedImages)
-            },
-            enabled = uiState !is UploadUiState.Loading &&
-                    selectedImages.isNotEmpty()
+            onClick = { viewModel.uploadImages(context) },
+            enabled = !uiState.isUploading &&
+                    uiState.selectedImages.isNotEmpty()
         ) {
             Text("Hochladen")
         }
+
+        if (uiState.isUploading) {
+            CircularProgressIndicator()
+            Text("Upload läuft...")
+        }
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp)
         ) {
-            items(selectedImages) { uri ->
+            items(uiState.selectedImages) { uri ->
                 AsyncImage(
                     model = uri,
                     contentDescription = null,
@@ -103,54 +102,26 @@ fun HomeScreen(
                 )
             }
         }
-
-        if (uiState is UploadUiState.Loading) {
-            Spacer(modifier = Modifier.height(16.dp))
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Upload läuft...")
-        }
     }
 
-    when (uiState) {
-        is UploadUiState.Success -> {
-            val summary = (uiState as UploadUiState.Success).summary
-            AlertDialog(
-                onDismissRequest = { viewModel.resetState() },
-                confirmButton = {
-                    TextButton(onClick = {
-                        viewModel.resetState()
-                        selectedImages = emptyList()
-                    }) {
-                        Text("OK")
-                    }
-                },
-                title = { Text("Upload abgeschlossen") },
-                text = {
-                    Text(
-                        """
-                        Gesamt: ${summary.total}
-                        Erfolgreich: ${summary.success}
-                        Fehlerhaft: ${summary.failed}
-                        """.trimIndent()
-                    )
+    uiState.uploadSummary?.let { summary ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDialog() },
+            confirmButton = {
+                TextButton(onClick = { viewModel.dismissDialog() }) {
+                    Text("OK")
                 }
-            )
-        }
-
-        is UploadUiState.Error -> {
-            val message = (uiState as UploadUiState.Error).message
-            AlertDialog(
-                onDismissRequest = { viewModel.resetState() },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.resetState() }) {
-                        Text("OK")
-                    }
-                },
-                title = { Text("Fehler") },
-                text = { Text(message) }
-            )
-        }
-        else -> {}
+            },
+            title = { Text("Upload abgeschlossen") },
+            text = {
+                Text(
+                    """
+                    Gesamt: ${summary.total}
+                    Erfolgreich: ${summary.success}
+                    Fehlerhaft: ${summary.failed}
+                    """.trimIndent()
+                )
+            }
+        )
     }
 }

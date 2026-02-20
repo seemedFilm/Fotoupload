@@ -12,37 +12,54 @@ import kotlinx.coroutines.launch
 
 class UploadViewModel : ViewModel() {
 
-    private val _uiState =
-        MutableStateFlow<UploadUiState>(UploadUiState.Idle)
-
+    private val _uiState = MutableStateFlow(UploadUiState())
     val uiState: StateFlow<UploadUiState> = _uiState
 
-    fun uploadImages(
-        context: Context,
-        images: List<Uri>
-    ) {
-        viewModelScope.launch {
-            try {
-                _uiState.value = UploadUiState.Loading
+    fun setSelectedImages(images: List<Uri>) {
+        _uiState.value = _uiState.value.copy(
+            selectedImages = images
+        )
+    }
 
+    fun uploadImages(context: Context) {
+
+        val images = _uiState.value.selectedImages
+        if (images.isEmpty()) return
+
+        viewModelScope.launch {
+
+            _uiState.value = _uiState.value.copy(
+                isUploading = true,
+                errorMessage = null
+            )
+
+            try {
                 val result = UploadService.uploadMultipleImages(
                     context,
                     images,
                     ApiConfig.BASE_URL
                 )
 
-                _uiState.value = UploadUiState.Success(result)
+                _uiState.value = _uiState.value.copy(
+                    isUploading = false,
+                    uploadSummary = result,
+                    selectedImages = emptyList()   // 👈 hier werden sie gelöscht
+                )
 
             } catch (e: Exception) {
 
-                _uiState.value = UploadUiState.Error(
-                    e.message ?: "Unbekannter Fehler"
+                _uiState.value = _uiState.value.copy(
+                    isUploading = false,
+                    errorMessage = e.message
                 )
             }
         }
     }
 
-    fun resetState() {
-        _uiState.value = UploadUiState.Idle
+    fun dismissDialog() {
+        _uiState.value = _uiState.value.copy(
+            uploadSummary = null,
+            errorMessage = null
+        )
     }
 }
