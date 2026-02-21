@@ -1,12 +1,9 @@
-package com.patrickl.fotoupload_android
+package com.patrickl.fotoupload_android.gui
 
 import com.patrickl.fotoupload_android.viewmodel.UploadViewModel
-import com.patrickl.fotoupload_android.viewmodel.UploadUiState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
 import androidx.activity.result.PickVisualMediaRequest
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -24,13 +21,21 @@ import com.patrickl.fotoupload_android.config.ApiConfig
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import com.patrickl.fotoupload_android.network.UploadSummary
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 
-@Preview
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen(
+        onOpenSettings = {}
+    )
+}
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: UploadViewModel = viewModel()
+    viewModel: UploadViewModel = viewModel(),
+    onOpenSettings: () -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
@@ -42,86 +47,97 @@ fun HomeScreen(
         viewModel.setSelectedImages(uris)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(25.dp))
-        Text(
-            text = "Foto Upload zu",
-            style = MaterialTheme.typography.headlineLarge,
-            fontSize = 50.sp,
-            color = Color.Red
-
-        )
-        Text(
-            text = ApiConfig.BASE_URL,
-            style = MaterialTheme.typography.headlineLarge,
-            fontSize = 30.sp,
-            color = Color.Green
-        )
-        Spacer(modifier = Modifier.height(50.dp))
-
-        Button(onClick = {
-            launcher.launch(
-                PickVisualMediaRequest(
-                    ActivityResultContracts.PickVisualMedia.ImageAndVideo
-                )
-            )
-        }) {
-            Text("Mehrere Bilder auswählen")
-        }
-
-        Button(
-            onClick = { viewModel.uploadImages(context) },
-            enabled = !uiState.isUploading &&
-                    uiState.selectedImages.isNotEmpty()
-        ) {
-            Text("Hochladen")
-        }
-
-        if (uiState.isUploading) {
-            CircularProgressIndicator()
-            Text("Upload läuft...")
-        }
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(8.dp)
-        ) {
-            items(uiState.selectedImages) { uri ->
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(120.dp)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onOpenSettings() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings"
                 )
             }
         }
-    }
+    ) { padding ->
 
-    uiState.uploadSummary?.let { summary ->
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissDialog() },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissDialog() }) {
-                    Text("OK")
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(
+                text = "Foto Upload zu",
+                style = MaterialTheme.typography.headlineLarge,
+                fontSize = 50.sp,
+                color = Color.Red
+
+            )
+            Text(
+                text = ApiConfig.BASE_URL,
+                style = MaterialTheme.typography.headlineLarge,
+                fontSize = 30.sp,
+                color = Color.Green
+            )
+            Spacer(modifier = Modifier.height(50.dp))
+            Button(onClick = {
+                launcher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                    )
+                )
+            }) {
+                Text("Mehrere Bilder auswählen")
+            }
+            Button(
+                onClick = { viewModel.uploadImages(context) },
+                enabled = !uiState.isUploading &&
+                        uiState.selectedImages.isNotEmpty()
+            ) {
+                Text("Hochladen")
+            }
+            if (uiState.isUploading) {
+                CircularProgressIndicator()
+                Text("Upload läuft...")
+            }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(uiState.selectedImages) { uri ->
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(120.dp)
+                    )
                 }
-            },
-            title = { Text("Upload abgeschlossen") },
-            text = {
-                Text(
-                    """
+            }
+        }
+
+        uiState.uploadSummary?.let { summary ->
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissDialog() },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.dismissDialog() }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Upload abgeschlossen") },
+                text = {
+                    Text(
+                        """
                     Gesamt: ${summary.total}
                     Erfolgreich: ${summary.success}
                     Fehlerhaft: ${summary.failed}
                     """.trimIndent()
-                )
-            }
-        )
+                    )
+                }
+            )
+        }
     }
 }

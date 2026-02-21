@@ -7,19 +7,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.patrickl.fotoupload_android.ui.theme.FotoUploadAndroidTheme
-//import com.patrickl.fotoupload_android.gui.HomeScreen
+import androidx.navigation.compose.*
+import androidx.navigation.compose.rememberNavController
+import com.patrickl.fotoupload_android.gui.HomeScreen
+import com.patrickl.fotoupload_android.gui.SettingsScreen
+import com.patrickl.fotoupload_android.navigation.AppNavigation
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        enableEdgeToEdge()
 
         setContent {
             FotoUploadAndroidTheme {
@@ -28,22 +27,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
 @Preview
 @Composable
 fun App() {
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* TODO: Aktion */ }
-            ) {
-                Text("+")
-            }
-        }
-    ) { innerPadding ->
-        HomeScreen(
-            modifier = Modifier.padding(innerPadding)
-        )
-    }
+    AppNavigation()
 }
 
 @Preview(showBackground = true)
@@ -53,3 +42,21 @@ fun AppPreview() {
         App()
     }
 }
+//@Composable
+//fun AppNavigation() {
+//    val navController = rememberNavController()
+//
+//    NavHost(
+//        navController = navController,
+//        startDestination = "main"
+//    ) {
+//        composable("main") {
+//            HomeScreen(navController)
+//        }
+//
+//        composable("settings") {
+//            SettingsScreen(navController)
+//        }
+//    }
+//}
+
