@@ -19,7 +19,11 @@ class ConnectionStorage(private val context: Context) {
     private val CONNECTIONS_KEY = stringPreferencesKey("connections_json")
     private val ACTIVE_ID_KEY = stringPreferencesKey("active_connection_id")
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        explicitNulls = false
+    }
 
     val connectionsFlow: Flow<List<ConnectionProfile>> =
         context.dataStore.data.map { prefs ->

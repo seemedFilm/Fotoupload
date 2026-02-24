@@ -1,6 +1,7 @@
 package com.patrickl.fotoupload_android.gui
 
 import com.patrickl.fotoupload_android.viewmodel.UploadViewModel
+import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.activity.result.PickVisualMediaRequest
@@ -17,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
 import com.patrickl.fotoupload_android.config.ApiConfig
-
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -28,37 +29,64 @@ import androidx.compose.material.icons.filled.Settings
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(
-        onOpenSettings = {}
+        onOpenSettings = {},
+        onOpenConnections = {}
     )
 }
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: UploadViewModel = viewModel(),
+    uploadViewModel: UploadViewModel = viewModel(),
+    connectionViewModel: ConnectionViewModel? = null,
+    onOpenConnections: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
-
-    val uiState by viewModel.uiState.collectAsState()
+    val activeConnection =
+        connectionViewModel?.activeConnection?.collectAsState()?.value
+    val uiState by uploadViewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
-        viewModel.setSelectedImages(uris)
+        uploadViewModel.setSelectedImages(uris)
     }
+
+    var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onOpenSettings() }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings"
-                )
+            Box {
+                FloatingActionButton(
+                    onClick = { expanded = true }
+                ) {
+                    Icon(Icons.Default.Menu, contentDescription = null)
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+
+                    DropdownMenuItem(
+                        text = { Text("Verbindungen verwalten") },
+                        onClick = {
+                            expanded = false
+                            onOpenConnections()
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Allgemeine Settings") },
+                        onClick = {
+                            expanded = false
+                            onOpenSettings()
+                        }
+                    )
+                }
             }
         }
-    ) { padding ->
+    ){ padding ->
 
         Column(
             modifier = modifier
@@ -76,7 +104,10 @@ fun HomeScreen(
 
             )
             Text(
-                text = ApiConfig.BASE_URL,
+                text = activeConnection?.name ?: "Keine Verbindung gewählt",
+//                text = activeConnection?.let {
+//                    "${it.baseUrl}:${it.port}"
+//                } ?: "Keine Verbindung"
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = 30.sp,
                 color = Color.Green
@@ -92,7 +123,7 @@ fun HomeScreen(
                 Text("Mehrere Bilder auswählen")
             }
             Button(
-                onClick = { viewModel.uploadImages(context) },
+                onClick = { uploadViewModel.uploadImages(context) },
                 enabled = !uiState.isUploading &&
                         uiState.selectedImages.isNotEmpty()
             ) {
@@ -121,9 +152,9 @@ fun HomeScreen(
 
         uiState.uploadSummary?.let { summary ->
             AlertDialog(
-                onDismissRequest = { viewModel.dismissDialog() },
+                onDismissRequest = { uploadViewModel.dismissDialog() },
                 confirmButton = {
-                    TextButton(onClick = { viewModel.dismissDialog() }) {
+                    TextButton(onClick = { uploadViewModel.dismissDialog() }) {
                         Text("OK")
                     }
                 },

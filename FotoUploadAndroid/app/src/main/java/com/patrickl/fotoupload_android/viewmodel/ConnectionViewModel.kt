@@ -3,6 +3,7 @@ package com.patrickl.fotoupload_android.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.patrickl.fotoupload_android.data.repository.ConnectionRepository
+import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,6 +21,12 @@ class ConnectionViewModel(
     fun setActive(id: String) {
         viewModelScope.launch {
             repository.setActive(id)
+        }
+    }
+
+    fun add(profile: ConnectionProfile) {
+        viewModelScope.launch {
+            repository.add(profile)
         }
     }
 
