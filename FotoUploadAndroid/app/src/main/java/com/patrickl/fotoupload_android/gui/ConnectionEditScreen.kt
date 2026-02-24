@@ -17,9 +17,9 @@ fun ConnectionEditScreen(
     viewModel: ConnectionViewModel
 ) {
     var name by remember { mutableStateOf("") }
-    var baseUrl by remember { mutableStateOf("") }
+    var intUrl by remember { mutableStateOf("") }
     var extUrl by remember { mutableStateOf("") }
-    var port by remember { mutableStateOf("8080") }
+    var port by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -41,9 +41,15 @@ fun ConnectionEditScreen(
             )
 
             OutlinedTextField(
-                value = baseUrl,
-                onValueChange = { baseUrl = it },
-                label = { Text("Base URL") },
+                value = intUrl,
+                onValueChange = { intUrl = it },
+                label = { Text("internal URL") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = extUrl,
+                onValueChange = { extUrl = it },
+                label = { Text("external URL") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -61,7 +67,7 @@ fun ConnectionEditScreen(
                     val profile = ConnectionProfile(
                         id = UUID.randomUUID().toString(),
                         name = name,
-                        baseUrl = baseUrl,
+                        intUrl = intUrl,
                         extUrl = extUrl,
                         port = port.toIntOrNull() ?: 80,
                         username = "",

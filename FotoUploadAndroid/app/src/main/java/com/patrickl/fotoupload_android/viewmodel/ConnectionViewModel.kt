@@ -18,12 +18,6 @@ class ConnectionViewModel(
     val activeConnection = repository.activeConnection
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun setActive(id: String) {
-        viewModelScope.launch {
-            repository.setActive(id)
-        }
-    }
-
     fun add(profile: ConnectionProfile) {
         viewModelScope.launch {
             repository.add(profile)
@@ -33,6 +27,12 @@ class ConnectionViewModel(
     fun delete(id: String) {
         viewModelScope.launch {
             repository.delete(id)
+        }
+    }
+
+    fun setActive(id: String) {
+        viewModelScope.launch {
+            repository.setActive(id)
         }
     }
 }

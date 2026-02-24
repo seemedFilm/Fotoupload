@@ -4,10 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConnectionProfile(
-    val schemaVersion: Int = 1,
     val id: String,
     val name: String,
-    val baseUrl: String,
+    val intUrl: String,
     val extUrl: String = "",
     val port: Int = 80,
     val username: String = "",

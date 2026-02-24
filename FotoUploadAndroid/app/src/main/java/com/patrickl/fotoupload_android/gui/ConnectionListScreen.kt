@@ -60,7 +60,7 @@ fun ConnectionListScreen(
                     ) {
                         Column {
                             Text(connection.name, style = MaterialTheme.typography.titleMedium)
-                            Text("${connection.baseUrl}:${connection.port}")
+                            Text("${connection.intUrl}:${connection.port}")
 //                            Text("${connection.extUrl}:${connection.port}")
                             Text("ExterneUrl")
                             if (connection.id == active?.id) {

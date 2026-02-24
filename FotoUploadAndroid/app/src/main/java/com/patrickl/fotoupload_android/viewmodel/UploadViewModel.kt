@@ -43,7 +43,7 @@ class UploadViewModel : ViewModel() {
                 _uiState.value = _uiState.value.copy(
                     isUploading = false,
                     uploadSummary = result,
-                    selectedImages = emptyList()   // 👈 hier werden sie gelöscht
+                    selectedImages = emptyList()
                 )
 
             } catch (e: Exception) {
