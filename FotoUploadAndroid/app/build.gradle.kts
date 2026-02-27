@@ -60,4 +60,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.bouncycastle)
+    implementation(libs.bcprov)
+    implementation(libs.bcpkix)
 }

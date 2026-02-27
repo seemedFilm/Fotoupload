@@ -16,16 +16,36 @@ import com.patrickl.fotoupload_android.gui.HomeScreen
 import com.patrickl.fotoupload_android.gui.SettingsScreen
 import com.patrickl.fotoupload_android.navigation.AppNavigation
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+import android.util.Log
+import com.patrickl.fotoupload_android.security.KeyStoreManager
+import com.patrickl.fotoupload_android.security.CsrGenerator
 
-        setContent {
-            FotoUploadAndroidTheme {
-                App()
-            }
+
+
+class MainActivity : ComponentActivity() {
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//
+//        setContent {
+//            FotoUploadAndroidTheme {
+//                App()
+//            }
+//        }
+//    }
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    KeyStoreManager.generateKeyPairIfNeeded()
+
+    val csr = CsrGenerator.generateCsr("patrick-test-device")
+    Log.d("CSR_TEST", csr)
+
+    setContent {
+        FotoUploadAndroidTheme {
+            App()
         }
     }
+}
 }
 
 
