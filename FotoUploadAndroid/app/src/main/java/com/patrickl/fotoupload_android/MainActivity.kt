@@ -23,30 +23,31 @@ import com.patrickl.fotoupload_android.security.CsrGenerator
 
 
 class MainActivity : ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//
-//        setContent {
-//            FotoUploadAndroidTheme {
-//                App()
-//            }
-//        }
-//    }
-override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    KeyStoreManager.generateKeyPairIfNeeded()
-
-    val csr = CsrGenerator.generateCsr("patrick-test-device")
-    Log.d("CSR_TEST", csr)
-
-    setContent {
-        FotoUploadAndroidTheme {
-            App()
+        setContent {
+            FotoUploadAndroidTheme {
+                App()
+            }
         }
     }
 }
-}
+//override fun onCreate(savedInstanceState: Bundle?) {
+//    super.onCreate(savedInstanceState)
+//
+//    KeyStoreManager.generateKeyPairIfNeeded()
+//
+//    val csr = CsrGenerator.generateCsr("patrick-test-device")
+//    Log.d("CSR_TEST", csr)
+//
+//    setContent {
+//        FotoUploadAndroidTheme {
+//            App()
+//        }
+//    }
+//}
+
 
 
 @Preview
