@@ -1,5 +1,6 @@
 package com.patrickl.fotoupload_android.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,7 +27,7 @@ fun ConnectionEditScreen(
             TopAppBar(title = { Text("Neue Verbindung") })
         }
     ) { padding ->
-
+        Log.d("CSR_DEBUG", "ConnectionEditScreen")
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -36,7 +37,7 @@ fun ConnectionEditScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Name") },
+                label = { Text("Namee") },
                 modifier = Modifier.fillMaxWidth()
             )
 

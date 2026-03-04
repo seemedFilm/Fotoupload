@@ -28,21 +28,15 @@ object CsrGenerator {
         val privateKey = keyStore.getKey(KEY_ALIAS, null) as? PrivateKey
             ?: throw IllegalStateException("PrivateKey not found in Keystore")
         val publicKey = keyStore.getCertificate(KEY_ALIAS).publicKey
-
         val subject = X500Name("CN=$commonName")
-
         val csrBuilder = JcaPKCS10CertificationRequestBuilder(
             subject,
             publicKey
         )
-
         val signer = JcaContentSignerBuilder("SHA256withRSA")
             .build(privateKey)
-
         val csr: PKCS10CertificationRequest = csrBuilder.build(signer)
-
         val pem = Base64.getEncoder().encodeToString(csr.encoded)
-
         return """
             -----BEGIN CERTIFICATE REQUEST-----
             $pem

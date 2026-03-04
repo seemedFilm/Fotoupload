@@ -12,16 +12,13 @@ object KeyStoreManager {
 
     fun generateKeyPairIfNeeded() {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-
         if (keyStore.containsAlias(KEY_ALIAS)) {
             return
         }
-
         val keyPairGenerator = KeyPairGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_RSA,
             ANDROID_KEYSTORE
         )
-
         val parameterSpec = KeyGenParameterSpec.Builder(
             KEY_ALIAS,
             KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
@@ -30,15 +27,12 @@ object KeyStoreManager {
             .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
             .setKeySize(2048)
             .build()
-
         keyPairGenerator.initialize(parameterSpec)
         keyPairGenerator.generateKeyPair()
     }
-
     fun getPrivateKey() =
         KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             .getKey(KEY_ALIAS, null)
-
     fun getCertificate() =
         KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             .getCertificate(KEY_ALIAS)

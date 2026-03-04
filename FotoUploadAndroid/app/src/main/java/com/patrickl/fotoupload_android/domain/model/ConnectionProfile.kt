@@ -8,7 +8,7 @@ data class ConnectionProfile(
     val name: String,
     val intUrl: String,
     val extUrl: String = "",
-    val port: Int = 80,
+    val port: Int,
     val username: String = "",
     val password: String = "",
     val useSsl: Boolean = false

@@ -16,10 +16,11 @@ object DeviceInfo {
         val model = Build.MODEL ?: "UnknownModel"
         val manufacturer = Build.MANUFACTURER ?: "UnknownVendor"
 
-        return when {
-            !systemName.isNullOrBlank() -> sanitize(systemName)
-            else -> sanitize("$manufacturer-$model")
+        val name = when {
+            !systemName.isNullOrBlank() -> systemName
+            else -> "$manufacturer-$model"
         }
+        return sanitize(name)
     }
 
     private fun sanitize(input: String): String {

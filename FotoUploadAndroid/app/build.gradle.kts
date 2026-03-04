@@ -63,4 +63,6 @@ dependencies {
     implementation(libs.bouncycastle)
     implementation(libs.bcprov)
     implementation(libs.bcpkix)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kotlinx.serialization.json)
 }

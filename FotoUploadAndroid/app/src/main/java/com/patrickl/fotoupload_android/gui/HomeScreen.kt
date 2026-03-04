@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
-import com.patrickl.fotoupload_android.config.ApiConfig
+//import com.patrickl.fotoupload_android.config.ApiConfig
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid

@@ -31,7 +31,7 @@ fun ConnectionListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate("connection_edit")
+                    navController.navigate("connection_add")
                 }
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)

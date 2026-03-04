@@ -27,12 +27,9 @@ object CertificateInstaller {
 
         val privateKey = keyStore.getKey(KEY_ALIAS, null)
             ?: throw IllegalStateException("PrivateKey not found")
-
         val clientCert = parseX509(clientCertPem)
         val caCert = loadCaCertificate(context)
-
         val chain = arrayOf(clientCert, caCert)
-
         keyStore.setKeyEntry(
             KEY_ALIAS,
             privateKey,
@@ -46,13 +43,10 @@ object CertificateInstaller {
             .replace("-----BEGIN CERTIFICATE-----", "")
             .replace("-----END CERTIFICATE-----", "")
             .replace("\\s".toRegex(), "")
-
         val decoded = Base64.getDecoder().decode(cleaned)
-
         val factory = CertificateFactory.getInstance("X.509")
         return factory.generateCertificate(decoded.inputStream()) as X509Certificate
     }
-
     private fun loadCaCertificate(context: Context): X509Certificate {
         val input = context.resources.openRawResource(R.raw.ca_cert)
         val factory = CertificateFactory.getInstance("X.509")

@@ -1,5 +1,6 @@
 package com.patrickl.fotoupload_android.network
 
+import android.util.Log
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -12,9 +13,46 @@ data class EnrollmentResponse(
 
 class EnrollmentApi(
     private val client: OkHttpClient,
-    private val baseUrl: String
+    private val intUrl: String
 ) {
 
+    // 🔹 LOGIN-METHODE HIER EINFÜGEN
+    suspend fun login(
+        username: String,
+        password: String
+    ): String {
+
+        val json = JSONObject().apply {
+            put("username", username)
+            put("password", password)
+        }
+
+        val body = json.toString()
+            .toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url("$intUrl/login.php")
+//            .url("$intUrl/login.php")
+            .post(body)
+            .build()
+
+        client.newCall(request).execute().use { response ->
+
+            if (!response.isSuccessful) {
+                Log.d("CSR_DEBUG", response.code.toString())
+                throw Exception("Login failed: ${response.code}")
+            }
+
+            val responseBody = response.body?.string()
+                ?: throw Exception("Empty response")
+
+            val jsonResponse = JSONObject(responseBody)
+
+            return jsonResponse.getString("token")
+        }
+    }
+
+    // 🔹 DEINE BISHERIGE ENROLL-METHODE
     suspend fun enroll(
         token: String,
         csr: String
@@ -29,24 +67,41 @@ class EnrollmentApi(
             .toRequestBody("application/json".toMediaType())
 
         val request = Request.Builder()
-            .url("$baseUrl/enroll.php")
+            .url("$intUrl/enroll.php")
             .post(body)
             .build()
 
+//        client.newCall(request).execute().use { response ->
+//
+//            if (!response.isSuccessful) {
+//                throw Exception("Enrollment failed: ${response.code}")
+//            }
+//
+//            val responseBody = response.body?.string()
+//                ?: throw Exception("Empty response")
+//
+//            val jsonResponse = JSONObject(responseBody)
+//
+//            return EnrollmentResponse(
+//                certificate = jsonResponse.getString("certificate")
+//            )
+//        }
         client.newCall(request).execute().use { response ->
 
+            val responseBody = response.body?.string()
+
+            println("HTTP Code: ${response.code}")
+            println("Response Body: $responseBody")
+
             if (!response.isSuccessful) {
-                throw Exception("Enrollment failed: ${response.code}")
+                throw Exception("Enrollment failed: ${response.code} - $responseBody")
             }
 
-            val responseBody = response.body?.string()
-                ?: throw Exception("Empty response")
-
             val jsonResponse = JSONObject(responseBody)
-
             return EnrollmentResponse(
                 certificate = jsonResponse.getString("certificate")
             )
         }
+
     }
 }

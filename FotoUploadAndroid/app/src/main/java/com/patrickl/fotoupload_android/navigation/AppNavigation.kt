@@ -9,11 +9,12 @@ import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModelFactory
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.*
 import com.patrickl.fotoupload_android.gui.HomeScreen
-import com.patrickl.fotoupload_android.gui.SettingsScreen
+//import com.patrickl.fotoupload_android.gui.SettingsScreen
 import com.patrickl.fotoupload_android.ui.ConnectionEditScreen
 import com.patrickl.fotoupload_android.ui.ConnectionListScreen
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import androidx.compose.runtime.remember
+import com.patrickl.fotoupload_android.gui.ConnectionSettingsScreen
 
 @Composable
 fun AppNavigation() {
@@ -44,9 +45,8 @@ fun AppNavigation() {
                 }
             )
         }
-
-        composable("settings") {
-            SettingsScreen(navController)
+        composable("connection_add") {
+            ConnectionSettingsScreen(navController, connectionViewModel)
         }
 
         composable("connections") {
@@ -55,6 +55,9 @@ fun AppNavigation() {
 
         composable("connection_edit") {
             ConnectionEditScreen(navController, connectionViewModel)
+        }
+        composable("connection_add") {
+            ConnectionSettingsScreen(navController, connectionViewModel)
         }
     }
 }
