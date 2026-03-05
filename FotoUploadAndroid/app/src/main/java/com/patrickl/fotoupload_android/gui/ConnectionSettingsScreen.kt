@@ -19,8 +19,7 @@ import androidx.navigation.NavHostController
 import com.patrickl.fotoupload_android.data.ConnectionDataStore
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
-import com.patrickl.fotoupload_android.gui.EnrollmentViewModel
-//import com.patrickl.fotoupload_android.viewmodel.EnrollmentState
+import com.patrickl.fotoupload_android.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,68 +27,80 @@ fun ConnectionSettingsScreen(
     navController: NavHostController,
     connectionViewModel: ConnectionViewModel
 ) {
-    Log.d("CSR_DEBUG", "ConnectionSettingsScreen")
+
     val context = LocalContext.current
     val enrollmentViewModel = remember {
         EnrollmentViewModel(context.applicationContext)
     }
     val state by enrollmentViewModel.state.collectAsState()
 
-    var name by remember { mutableStateOf("") }
-    var intUrl by remember { mutableStateOf("") }
-    var extUrl by remember { mutableStateOf("") }
-    var portInput by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var useSsl by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(if (BuildConfig.DEBUG) "Bilderrahmen" else "") }
+    var intUrl by remember { mutableStateOf(if (BuildConfig.DEBUG) "192.168.1.190" else "") }
+    var extUrl by remember { mutableStateOf(if (BuildConfig.DEBUG) "bilder.diefamilielang.de" else "") }
+    var portInput by remember { mutableStateOf(if (BuildConfig.DEBUG) "443" else "") }
+    var username by remember { mutableStateOf(if (BuildConfig.DEBUG) "patrick" else "") }
+    var password by remember { mutableStateOf(if (BuildConfig.DEBUG) "TestPasswort123" else "") }
+    var useSsl by remember { mutableStateOf(if (BuildConfig.DEBUG) true else false) }
 
     var portError by remember { mutableStateOf<String?>(null) }
     var profileToSave by remember { mutableStateOf<ConnectionProfile?>(null) }
+
+    LaunchedEffect(state) {
+
+        if (state is EnrollmentState.Success) {
+
+            profileToSave?.let { profile ->
+
+                try {
+
+                    val dataStore = ConnectionDataStore(context)
+
+                    dataStore.saveProfile(profile)
+
+                    navController.popBackStack()
+
+                } catch (e: Exception) {
+
+                    Log.e("SAVE_PROFILE_CRASH", "Failed to save profile", e)
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "Verbindung hinzufügen",
             style = MaterialTheme.typography.headlineLarge,
             fontSize = 25.sp,
             color = Color.Red
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
             label = { Text("Name") },
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = intUrl,
             onValueChange = { intUrl = it },
             label = { Text("Interne URL (ohne http/https)") },
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = extUrl,
             onValueChange = { extUrl = it },
             label = { Text("Externe URL (optional)") },
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = portInput,
             onValueChange = { input ->
@@ -103,17 +114,15 @@ fun ConnectionSettingsScreen(
             isError = portError != null,
             modifier = Modifier.fillMaxWidth()
         )
-
         portError?.let {
+
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
             )
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -122,7 +131,6 @@ fun ConnectionSettingsScreen(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -130,27 +138,24 @@ fun ConnectionSettingsScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Checkbox(
                 checked = useSsl,
                 onCheckedChange = { useSsl = it }
             )
             Text("SSL verwenden")
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = {
-
                 val defaultPort = if (useSsl) 443 else 80
-
                 val port: Int = if (portInput.isBlank()) {
                     defaultPort
                 } else {
+
                     val parsed = portInput.toIntOrNull()
                     if (parsed == null || parsed !in 1..65535) {
                         portError = "Port muss zwischen 1 und 65535 liegen"
@@ -169,7 +174,6 @@ fun ConnectionSettingsScreen(
                     password = password,
                     useSsl = useSsl
                 )
-
                 profileToSave = profile
                 enrollmentViewModel.enroll(profile)
             },
@@ -185,15 +189,7 @@ fun ConnectionSettingsScreen(
             }
             is EnrollmentState.Success -> {
                 Text("Enrollment erfolgreich")
-                profileToSave?.let { profile ->
-                    val dataStore = ConnectionDataStore(context)
-                    LaunchedEffect(profile) {
-                        dataStore.saveProfile(profile)
-                        navController.popBackStack()
-                    }
-                }
             }
-
             is EnrollmentState.Error -> {
                 Text(
                     text = "Fehler: ${(state as EnrollmentState.Error).message}",
@@ -204,3 +200,5 @@ fun ConnectionSettingsScreen(
         }
     }
 }
+
+

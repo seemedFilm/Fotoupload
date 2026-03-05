@@ -27,7 +27,6 @@ fun ConnectionEditScreen(
             TopAppBar(title = { Text("Neue Verbindung") })
         }
     ) { padding ->
-        Log.d("CSR_DEBUG", "ConnectionEditScreen")
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -71,7 +70,7 @@ fun ConnectionEditScreen(
                         intUrl = intUrl,
                         extUrl = extUrl,
                         port = port.toIntOrNull() ?: 80,
-                        username = "",
+                        username = "patrick",
                         password = "",
                         useSsl = false
                     )

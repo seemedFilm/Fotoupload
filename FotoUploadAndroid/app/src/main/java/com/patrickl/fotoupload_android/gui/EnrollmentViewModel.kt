@@ -19,16 +19,12 @@ class EnrollmentViewModel(
     val state: StateFlow<EnrollmentState> = _state
 
     fun enroll(profile: ConnectionProfile) {
-
         val scheme = if (profile.useSsl) "https" else "http"
-
         val baseUrl = "$scheme://${profile.extUrl}:${profile.port}"
-
         val api = EnrollmentApi(
             client = HttpClientFactory.createDefault(),
             intUrl = baseUrl
         )
-
         val repository = EnrollmentRepository(
             context = context,
             api = api

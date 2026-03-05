@@ -2,6 +2,7 @@ package com.patrickl.fotoupload_android.security
 
 import com.patrickl.fotoupload_android.R
 import android.content.Context
+import android.util.Log
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.CertificateFactory
@@ -36,6 +37,7 @@ object CertificateInstaller {
             null,
             chain
         )
+        val cert = keyStore.getCertificate(KEY_ALIAS)
     }
 
     private fun parseX509(pem: String): X509Certificate {

@@ -4,7 +4,6 @@ import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
-import java.security.KeyPair
 import java.security.KeyStore
 import java.security.Security
 import org.bouncycastle.jce.provider.BouncyCastleProvider
