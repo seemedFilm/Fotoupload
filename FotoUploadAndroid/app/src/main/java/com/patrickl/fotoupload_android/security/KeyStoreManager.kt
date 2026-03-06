@@ -30,6 +30,9 @@ object KeyStoreManager {
         keyPairGenerator.initialize(parameterSpec)
         keyPairGenerator.generateKeyPair()
     }
+    fun getKeyStore(): KeyStore {
+        return KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+    }
     fun getPrivateKey() =
         KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             .getKey(KEY_ALIAS, null)
