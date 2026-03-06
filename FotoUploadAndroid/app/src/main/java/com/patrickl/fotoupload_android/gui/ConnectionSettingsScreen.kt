@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.patrickl.fotoupload_android.data.ConnectionDataStore
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import com.patrickl.fotoupload_android.BuildConfig
@@ -28,10 +28,7 @@ fun ConnectionSettingsScreen(
     connectionViewModel: ConnectionViewModel
 ) {
 
-    val context = LocalContext.current
-    val enrollmentViewModel = remember {
-        EnrollmentViewModel(context.applicationContext)
-    }
+     val enrollmentViewModel: EnrollmentViewModel = viewModel()
     val state by enrollmentViewModel.state.collectAsState()
 
     var name by remember { mutableStateOf(if (BuildConfig.DEBUG) "Bilderrahmen" else "") }
@@ -45,28 +42,35 @@ fun ConnectionSettingsScreen(
     var portError by remember { mutableStateOf<String?>(null) }
     var profileToSave by remember { mutableStateOf<ConnectionProfile?>(null) }
 
-    LaunchedEffect(state) {
 
+//    LaunchedEffect(state) {
+//        if (state is EnrollmentState.Success) {
+//            profileToSave?.let { profile ->
+//                try {
+//                    connectionViewModel.add(profile)
+//                    navController.popBackStack()
+//                } catch (e: Exception) {
+//                    Log.e("SAVE_PROFILE_CRASH", "Failed to save profile", e)
+//                }
+//            }
+//        }
+//    }
+//    LaunchedEffect(state) {
+//        if (state is EnrollmentState.Success) {
+//            profileToSave?.let { profile ->
+//                connectionViewModel.add(profile)
+//                navController.popBackStack()
+//            }
+//        }
+//    }
+    LaunchedEffect(state is EnrollmentState.Success) {
         if (state is EnrollmentState.Success) {
-
             profileToSave?.let { profile ->
-
-                try {
-
-                    val dataStore = ConnectionDataStore(context)
-
-                    dataStore.saveProfile(profile)
-
-                    navController.popBackStack()
-
-                } catch (e: Exception) {
-
-                    Log.e("SAVE_PROFILE_CRASH", "Failed to save profile", e)
-                }
+                connectionViewModel.add(profile)
+                navController.popBackStack()
             }
         }
     }
-
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -77,7 +81,7 @@ fun ConnectionSettingsScreen(
             text = "Verbindung hinzufügen",
             style = MaterialTheme.typography.headlineLarge,
             fontSize = 25.sp,
-            color = Color.Red
+            color = MaterialTheme.colorScheme.primary //color = Color.Red
         )
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
@@ -174,8 +178,8 @@ fun ConnectionSettingsScreen(
                     password = password,
                     useSsl = useSsl
                 )
-                profileToSave = profile
-                enrollmentViewModel.enroll(profile)
+//                profileToSave = profile
+//                enrollmentViewModel.enroll(profile)
             },
             enabled = state !is EnrollmentState.Loading,
             modifier = Modifier.fillMaxWidth()
