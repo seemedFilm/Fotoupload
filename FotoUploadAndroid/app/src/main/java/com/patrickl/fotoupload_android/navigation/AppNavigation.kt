@@ -11,7 +11,7 @@ import androidx.navigation.compose.*
 import com.patrickl.fotoupload_android.gui.HomeScreen
 //import com.patrickl.fotoupload_android.gui.SettingsScreen
 import com.patrickl.fotoupload_android.ui.ConnectionEditScreen
-import com.patrickl.fotoupload_android.ui.ConnectionListScreen
+import com.patrickl.fotoupload_android.gui.ConnectionListScreen
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import androidx.compose.runtime.remember
 import com.patrickl.fotoupload_android.gui.ConnectionSettingsScreen

@@ -32,14 +32,12 @@ fun ConnectionEditScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Namee") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             OutlinedTextField(
                 value = intUrl,
                 onValueChange = { intUrl = it },
@@ -52,16 +50,13 @@ fun ConnectionEditScreen(
                 label = { Text("external URL") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             OutlinedTextField(
                 value = port,
                 onValueChange = { port = it },
                 label = { Text("Port") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(
                 onClick = {
                     val profile = ConnectionProfile(
@@ -70,13 +65,11 @@ fun ConnectionEditScreen(
                         intUrl = intUrl,
                         extUrl = extUrl,
                         port = port.toIntOrNull() ?: 80,
-                        username = "patrick",
+                        username = "",
                         password = "",
                         useSsl = false
                     )
-
                     viewModel.add(profile)
-
                     navController.popBackStack()
                 }
             ) {

@@ -1,4 +1,4 @@
-package com.patrickl.fotoupload_android.ui
+package com.patrickl.fotoupload_android.gui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -61,13 +61,11 @@ fun ConnectionListScreen(
                         Column {
                             Text(connection.name, style = MaterialTheme.typography.titleMedium)
                             Text("${connection.intUrl}:${connection.port}")
-//                            Text("${connection.extUrl}:${connection.port}")
-                            Text("ExterneUrl")
+                            Text("${connection.extUrl}:${connection.port}")
                             if (connection.id == active?.id) {
                                 Text("Aktiv", color = MaterialTheme.colorScheme.primary)
                             }
                         }
-
                         IconButton(
                             onClick = {
                                 viewModel.delete(connection.id)

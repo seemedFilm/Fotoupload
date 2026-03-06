@@ -1,6 +1,5 @@
 package com.patrickl.fotoupload_android.gui
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,6 +18,9 @@ import androidx.navigation.NavHostController
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import com.patrickl.fotoupload_android.BuildConfig
+import com.patrickl.fotoupload_android.viewmodel.EnrollmentState
+import com.patrickl.fotoupload_android.viewmodel.EnrollmentViewModel
+import com.patrickl.fotoupload_android.viewmodel.EnrollmentViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +29,11 @@ fun ConnectionSettingsScreen(
     connectionViewModel: ConnectionViewModel
 ) {
 
-     val enrollmentViewModel: EnrollmentViewModel = viewModel()
+    val context = LocalContext.current
+    val enrollmentViewModel: EnrollmentViewModel = viewModel(
+        factory = EnrollmentViewModelFactory(context.applicationContext)
+    )
+
     val state by enrollmentViewModel.state.collectAsState()
 
     var name by remember { mutableStateOf(if (BuildConfig.DEBUG) "Bilderrahmen" else "") }
@@ -40,32 +45,10 @@ fun ConnectionSettingsScreen(
     var useSsl by remember { mutableStateOf(if (BuildConfig.DEBUG) true else false) }
 
     var portError by remember { mutableStateOf<String?>(null) }
-    var profileToSave by remember { mutableStateOf<ConnectionProfile?>(null) }
 
-
-//    LaunchedEffect(state) {
-//        if (state is EnrollmentState.Success) {
-//            profileToSave?.let { profile ->
-//                try {
-//                    connectionViewModel.add(profile)
-//                    navController.popBackStack()
-//                } catch (e: Exception) {
-//                    Log.e("SAVE_PROFILE_CRASH", "Failed to save profile", e)
-//                }
-//            }
-//        }
-//    }
-//    LaunchedEffect(state) {
-//        if (state is EnrollmentState.Success) {
-//            profileToSave?.let { profile ->
-//                connectionViewModel.add(profile)
-//                navController.popBackStack()
-//            }
-//        }
-//    }
-    LaunchedEffect(state is EnrollmentState.Success) {
+    LaunchedEffect(state) {
         if (state is EnrollmentState.Success) {
-            profileToSave?.let { profile ->
+            enrollmentViewModel.consumeProfile()?.let { profile ->
                 connectionViewModel.add(profile)
                 navController.popBackStack()
             }
@@ -178,8 +161,7 @@ fun ConnectionSettingsScreen(
                     password = password,
                     useSsl = useSsl
                 )
-//                profileToSave = profile
-//                enrollmentViewModel.enroll(profile)
+                enrollmentViewModel.enroll(profile)
             },
             enabled = state !is EnrollmentState.Loading,
             modifier = Modifier.fillMaxWidth()
