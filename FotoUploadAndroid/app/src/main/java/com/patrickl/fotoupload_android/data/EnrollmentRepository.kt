@@ -18,7 +18,7 @@ class EnrollmentRepository(
 
     suspend fun enroll(profile: ConnectionProfile) = withContext(Dispatchers.IO) {
 
-        KeyStoreManager.generateKeyPairIfNeeded()
+        val alias = "client_cert_${profile.id}"
         val client = HttpClientFactory.createDefault()
         val resolver = ConnectionResolver(client)
         val baseUrl = resolver.resolve(profile)
@@ -27,13 +27,14 @@ class EnrollmentRepository(
             username = profile.username,
             password = profile.password
         )
-
         val deviceName = DeviceInfo.getDeviceName(context)
-        val csr = CsrGenerator.generateCsr(deviceName)
+        val csr = CsrGenerator.generateCsr(deviceName, alias)
         val response = api.enroll(
             token = token,
             csr = csr
         )
+
+        KeyStoreManager.generateKeyPairIfNeeded(alias)
         CertificateInstaller.installCertificate(
             context = context,
             clientCertPem = response.certificate

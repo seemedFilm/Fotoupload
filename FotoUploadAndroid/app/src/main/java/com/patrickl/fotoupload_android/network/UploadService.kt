@@ -1,19 +1,14 @@
 package com.patrickl.fotoupload_android.network
-import com.patrickl.fotoupload_android.network.UploadSummary
-//import com.patrickl.fotoupload_android.config.ApiConfig
+
 import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import java.io.FileOutputStream
+import okhttp3.MediaType.Companion.toMediaType
+import java.io.IOException
 
 object UploadService {
-
-    private val client = OkHttpClient()
 
     suspend fun uploadMultipleImages(
         context: Context,
@@ -21,68 +16,93 @@ object UploadService {
         serverUrl: String
     ): UploadSummary = withContext(Dispatchers.IO) {
 
-        val multipartBuilder = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
+        val client = MtlsHttpClientFactory(context).create()
 
-        uris.forEachIndexed { index, uri ->
+        try {
 
-            val inputStream = context.contentResolver.openInputStream(uri)
-                ?: return@forEachIndexed
+            val multipartBuilder = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
 
-            val tempFile = File.createTempFile("upload_$index", ".jpg", context.cacheDir)
+            uris.forEachIndexed { index, uri ->
 
-            FileOutputStream(tempFile).use { output ->
-                inputStream.copyTo(output)
-            }
+                val stream = context.contentResolver.openInputStream(uri)
+                    ?: return@forEachIndexed
 
-            val requestFile = tempFile
-                .asRequestBody("image/*".toMediaTypeOrNull())
+                val requestBody = object : RequestBody() {
 
-            multipartBuilder.addFormDataPart(
-                "files[]",
-                tempFile.name,
-                requestFile
-            )
-        }
+                    override fun contentType(): MediaType {
+                        return "image/*".toMediaType()
+                    }
 
-        val requestBody = multipartBuilder.build()
+                    override fun writeTo(sink: okio.BufferedSink) {
+                        stream.use { input ->
+                            sink.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                    }
+                }
 
-        val request = Request.Builder()
-            .url("$serverUrl/upload.php")
-            .post(requestBody)
-            .build()
-
-        client.newCall(request).execute().use { response ->
-
-            val body = response.body?.string()
-
-            println("=========== SERVER RESPONSE ===========")
-            println(body)
-            println("HTTP CODE: ${response.code}")
-            println("=======================================")
-
-            if (!response.isSuccessful || body == null) {
-                return@use UploadSummary(
-                    total = uris.size,
-                    success = 0,
-                    failed = uris.size
+                multipartBuilder.addFormDataPart(
+                    "files[]",
+                    "image_$index.jpg",
+                    requestBody
                 )
             }
 
-            var successCount = 0
-            var failCount = 0
+            val requestBody = multipartBuilder.build()
 
-            Regex("\"status\"\\s*:\\s*\"(ok|error)\"")
-                .findAll(body)
-                .forEach {
-                    if (it.groupValues[1] == "ok") successCount++
-                    else failCount++
+            val request = Request.Builder()
+                .url("$serverUrl/upload.php")
+                .post(requestBody)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+
+                val body = response.body?.string()
+
+                println("=========== SERVER RESPONSE ===========")
+                println(body)
+                println("HTTP CODE: ${response.code}")
+                println("=======================================")
+
+                if (!response.isSuccessful || body == null) {
+
+                    return@use UploadSummary(
+                        total = uris.size,
+                        success = 0,
+                        failed = uris.size,
+                        errorMessage = "HTTP ${response.code}"
+                    )
                 }
+
+                var successCount = 0
+                var failCount = 0
+
+                Regex("\"status\"\\s*:\\s*\"(ok|error)\"")
+                    .findAll(body)
+                    .forEach {
+
+                        if (it.groupValues[1] == "ok")
+                            successCount++
+                        else
+                            failCount++
+                    }
+
+                UploadSummary(
+                    total = uris.size,
+                    success = successCount,
+                    failed = failCount
+                )
+            }
+
+        } catch (e: IOException) {
 
             UploadSummary(
                 total = uris.size,
-                success = successCount,
-                failed = failCount
+                success = 0,
+                failed = uris.size,
+                errorMessage = e.message
             )
         }
     }

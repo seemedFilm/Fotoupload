@@ -1,5 +1,6 @@
 package com.patrickl.fotoupload_android.security
 
+import kotlinx.serialization.descriptors.PrimitiveKind
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
@@ -13,7 +14,6 @@ import java.security.PrivateKey
 object CsrGenerator {
 
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
-    private const val KEY_ALIAS = "upload_client_key"
 
     init {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
@@ -21,12 +21,16 @@ object CsrGenerator {
         }
     }
 
-    fun generateCsr(commonName: String): String {
+    fun generateCsr(
+        commonName: String,
+        alias: String
+    ):
+            String {
 
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        val privateKey = keyStore.getKey(KEY_ALIAS, null) as? PrivateKey
+        val privateKey = keyStore.getKey(alias, null) as? PrivateKey
             ?: throw IllegalStateException("PrivateKey not found in Keystore")
-        val publicKey = keyStore.getCertificate(KEY_ALIAS).publicKey
+        val publicKey = keyStore.getCertificate(alias).publicKey
         val subject = X500Name("CN=$commonName")
         val csrBuilder = JcaPKCS10CertificationRequestBuilder(
             subject,
