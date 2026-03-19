@@ -17,23 +17,16 @@ object UploadService {
     ): UploadSummary = withContext(Dispatchers.IO) {
 
         val client = MtlsHttpClientFactory(context).create()
-
         try {
-
             val multipartBuilder = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-
             uris.forEachIndexed { index, uri ->
-
                 val stream = context.contentResolver.openInputStream(uri)
                     ?: return@forEachIndexed
-
                 val requestBody = object : RequestBody() {
-
                     override fun contentType(): MediaType {
                         return "image/*".toMediaType()
                     }
-
                     override fun writeTo(sink: okio.BufferedSink) {
                         stream.use { input ->
                             sink.outputStream().use { output ->
@@ -51,7 +44,6 @@ object UploadService {
             }
 
             val requestBody = multipartBuilder.build()
-
             val request = Request.Builder()
                 .url("$serverUrl/upload.php")
                 .post(requestBody)

@@ -7,7 +7,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.patrickl.fotoupload_android.ui.theme.FotoUploadAndroidTheme
 import com.patrickl.fotoupload_android.navigation.AppNavigation
-import android.util.Log
+import com.patrickl.fotoupload_android.data.ConnectionDataStore
+import com.patrickl.fotoupload_android.security.KeyStoreManager
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
 
@@ -17,7 +21,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
 
             val dataStore = ConnectionDataStore(applicationContext)
-            val profiles = dataStore.getProfiles()
+            val profiles = dataStore.getProfiles().first()
 
             if (profiles.isEmpty() && KeyStoreManager.hasCertificate()) {
                 KeyStoreManager.deleteKey()
