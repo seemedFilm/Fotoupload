@@ -8,7 +8,7 @@ import java.security.KeyStore
 object KeyStoreManager {
 
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
-    //private const val KEY_ALIAS = "upload_client_key"
+    private const val CERT_PREFIX = "client_cert_"
 
     fun generateKeyPairIfNeeded(alias: String) {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
@@ -29,24 +29,30 @@ object KeyStoreManager {
         keyPairGenerator.initialize(spec)
         keyPairGenerator.generateKeyPair()
     }
+
     fun getKeyStore(): KeyStore {
         return KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
     }
-//    fun getPrivateKey() =
-//        KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-//            .getKey(KEY_ALIAS, null)
+
     fun getCertificate(alias: String) =
-        KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-            .getCertificate(alias)
+        getKeyStore().getCertificate(alias)
+
     fun deleteKey(alias: String) {
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        val keyStore = getKeyStore()
         if (keyStore.containsAlias(alias)) {
             keyStore.deleteEntry(alias)
         }
     }
-//    fun hasCertificate(): Boolean {
-//        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-//        return keyStore.getCertificate(KEY_ALIAS) != null
-//    }
 
+    fun hasAnyCertificate(): Boolean {
+        val keyStore = getKeyStore()
+        return keyStore.aliases().asSequence().any { it.startsWith(CERT_PREFIX) }
+    }
+
+    fun deleteAllCertificates() {
+        val keyStore = getKeyStore()
+        keyStore.aliases().asSequence().filter { it.startsWith(CERT_PREFIX) }.forEach {
+            keyStore.deleteEntry(it)
+        }
+    }
 }

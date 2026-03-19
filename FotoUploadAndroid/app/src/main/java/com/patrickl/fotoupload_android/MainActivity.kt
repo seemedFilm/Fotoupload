@@ -7,7 +7,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.patrickl.fotoupload_android.ui.theme.FotoUploadAndroidTheme
 import com.patrickl.fotoupload_android.navigation.AppNavigation
-import com.patrickl.fotoupload_android.data.ConnectionDataStore
+import com.patrickl.fotoupload_android.data.repository.ConnectionRepository
+import com.patrickl.fotoupload_android.data.storage.ConnectionStorage
 import com.patrickl.fotoupload_android.security.KeyStoreManager
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -19,12 +20,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
+            val storage = ConnectionStorage(applicationContext)
+            val repository = ConnectionRepository(storage)
+            val profiles = repository.connections.first()
 
-            val dataStore = ConnectionDataStore(applicationContext)
-            val profiles = dataStore.getProfiles().first()
-
-            if (profiles.isEmpty() && KeyStoreManager.hasCertificate()) {
-                KeyStoreManager.deleteKey()
+            if (profiles.isEmpty() && KeyStoreManager.hasAnyCertificate()) {
+                KeyStoreManager.deleteAllCertificates()
             }
         }
 
@@ -50,5 +51,3 @@ fun AppPreview() {
         App()
     }
 }
-
-

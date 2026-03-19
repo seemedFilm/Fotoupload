@@ -1,11 +1,14 @@
 plugins {
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
 }
+
 kotlin {
     jvmToolchain(17)
 }
+
 android {
     namespace = "com.patrickl.fotoupload_android"
     compileSdk = 36
@@ -32,9 +35,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
     buildFeatures {
         compose = true
@@ -67,5 +67,4 @@ dependencies {
     implementation(libs.bcprov)
     implementation(libs.bcpkix)
     implementation(libs.androidx.datastore.preferences)
-    implementation(platform(libs.androidx.compose.bom))
 }
