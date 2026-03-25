@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="@raw/ca_cert" />
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
 
-    <!-- LAN HTTP Zugriff erlauben -->
+    <!-- Cleartext fallback for the specific local IP if needed -->
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">192.168.1.190</domain>
+        <domain includeSubdomains="true">192.168.1.190</domain>
     </domain-config>
-
 </network-security-config>

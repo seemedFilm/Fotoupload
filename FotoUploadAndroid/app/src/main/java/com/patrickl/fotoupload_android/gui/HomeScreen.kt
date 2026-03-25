@@ -8,6 +8,9 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,14 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
-//import com.patrickl.fotoupload_android.config.ApiConfig
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-
-
 
 @Preview(showBackground = true)
 @Composable
@@ -34,6 +34,7 @@ fun HomeScreenPreview() {
         onOpenConnections = {}
     )
 }
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -68,7 +69,6 @@ fun HomeScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-
                     DropdownMenuItem(
                         text = { Text("Verbindungen verwalten") },
                         onClick = {
@@ -76,7 +76,6 @@ fun HomeScreen(
                             onOpenConnections()
                         }
                     )
-
                     DropdownMenuItem(
                         text = { Text("Allgemeine Settings") },
                         onClick = {
@@ -87,8 +86,7 @@ fun HomeScreen(
                 }
             }
         }
-    ){ padding ->
-
+    ) { padding ->
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -102,13 +100,9 @@ fun HomeScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = 50.sp,
                 color = Color.Red
-
             )
             Text(
                 text = activeConnection?.name ?: "Keine Verbindung gewählt",
-//                text = activeConnection?.let {
-//                    "${it.baseUrl}:${it.port}"
-//                } ?: "Keine Verbindung"
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = 30.sp,
                 color = Color.Green
@@ -124,9 +118,12 @@ fun HomeScreen(
                 Text("Mehrere Bilder auswählen")
             }
             Button(
-                onClick = { uploadViewModel.uploadImages(context) },
+                onClick = { 
+                    activeConnection?.let { uploadViewModel.uploadImages(context, it) }
+                },
                 enabled = !uiState.isUploading &&
-                        uiState.selectedImages.isNotEmpty()
+                        uiState.selectedImages.isNotEmpty() &&
+                        activeConnection != null
             ) {
                 Text("Hochladen")
             }
@@ -159,15 +156,31 @@ fun HomeScreen(
                         Text("OK")
                     }
                 },
-                title = { Text("Upload abgeschlossen") },
+                title = { Text("Upload Status") },
                 text = {
-                    Text(
-                        """
-                    Gesamt: ${summary.total}
-                    Erfolgreich: ${summary.success}
-                    Fehlerhaft: ${summary.failed}
-                    """.trimIndent()
-                    )
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Text("Gesamt: ${summary.total}")
+                        Text("Erfolgreich: ${summary.success}", color = Color(0xFF4CAF50))
+                        Text("Fehlerhaft: ${summary.failed}", color = if (summary.failed > 0) Color.Red else Color.Unspecified)
+                        
+                        summary.errorMessage?.let { error ->
+                            Spacer(modifier = Modifier.height(12.dp))
+                            HorizontalDivider()
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Details / Server Response:",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            SelectionContainer {
+                                Text(
+                                    text = error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
                 }
             )
         }
