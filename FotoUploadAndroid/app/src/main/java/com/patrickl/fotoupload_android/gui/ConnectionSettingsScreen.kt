@@ -1,5 +1,6 @@
 package com.patrickl.fotoupload_android.gui
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,14 +22,14 @@ import com.patrickl.fotoupload_android.BuildConfig
 import com.patrickl.fotoupload_android.viewmodel.EnrollmentState
 import com.patrickl.fotoupload_android.viewmodel.EnrollmentViewModel
 import com.patrickl.fotoupload_android.viewmodel.EnrollmentViewModelFactory
-
+private const val TAG = "ConnectionSettingsScreen.kt"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectionSettingsScreen(
     navController: NavHostController,
     connectionViewModel: ConnectionViewModel
 ) {
-
+    Log.d(TAG, "$TAG loaded")
     val context = LocalContext.current
     val enrollmentViewModel: EnrollmentViewModel = viewModel(
         factory = EnrollmentViewModelFactory(context.applicationContext)
@@ -175,12 +176,14 @@ fun ConnectionSettingsScreen(
             }
             is EnrollmentState.Success -> {
                 Text("Enrollment erfolgreich")
+                Log.i(TAG, "Enrollment erfolgreich")
             }
             is EnrollmentState.Error -> {
                 Text(
                     text = "Fehler: ${(state as EnrollmentState.Error).message}",
                     color = MaterialTheme.colorScheme.error
                 )
+                Log.e(TAG, "Error: ${(state as EnrollmentState.Error).message}")
             }
             else -> {}
         }

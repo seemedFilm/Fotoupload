@@ -1,5 +1,6 @@
 package com.patrickl.fotoupload_android.gui
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
-
+private const val TAG = "ConnectionListScreen.kt"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectionListScreen(
@@ -21,7 +22,7 @@ fun ConnectionListScreen(
 ) {
     val connections by viewModel.connections.collectAsState()
     val active by viewModel.activeConnection.collectAsState()
-
+    Log.d(TAG, "$TAG loaded")
     Scaffold(
         topBar = {
             TopAppBar(

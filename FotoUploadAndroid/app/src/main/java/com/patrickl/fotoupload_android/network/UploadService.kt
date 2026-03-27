@@ -3,6 +3,8 @@ package com.patrickl.fotoupload_android.network
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
+import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
@@ -10,15 +12,23 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
+private const val TAG = "UploadService.kt"
+
 object UploadService {
 
     suspend fun uploadMultipleImages(
         context: Context,
         uris: List<Uri>,
-        serverUrl: String
+        baseUrl: String,
+        profile: ConnectionProfile
     ): UploadSummary = withContext(Dispatchers.IO) {
+        val uploadUrl = "${baseUrl.trimEnd('/')}/upload.php"
+        Log.d(TAG, "[uploadMultipleImages]: Starting upload of ${uris.size} files to $uploadUrl")
 
-        val client = MtlsHttpClientFactory(context).create()
+        val alias = "client_cert_${profile.id}"
+        val factory = MtlsHttpClientFactory(context)
+        val client = HttpClientProvider.getClient(uploadUrl)
+
         try {
             val multipartBuilder = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -42,19 +52,21 @@ object UploadService {
 
             val requestBody = multipartBuilder.build()
             val request = Request.Builder()
-                .url("${serverUrl.trimEnd('/')}/upload.php")
+                .url(uploadUrl)
                 .post(requestBody)
                 .build()
 
+            Log.d(TAG, "Executing POST request to: $uploadUrl")
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string()
 
-                println("=========== SERVER RESPONSE ===========")
-                println("HTTP CODE: ${response.code}")
-                println("BODY: $body")
-                println("=======================================")
+                Log.d(TAG, "Server responded with HTTP ${response.code}")
+                if (response.code != 200) {
+                    Log.w(TAG, "Non-200 response received. Body snippet: ${body?.take(200)}")
+                }
 
                 if (!response.isSuccessful || body == null) {
+                    Log.e(TAG, "Request failed. Code: ${response.code}, Body: $body")
                     return@use UploadSummary(
                         total = uris.size,
                         success = 0,
@@ -72,6 +84,7 @@ object UploadService {
                    val duplicateCount = Regex("\"status\"\\s*:\\s*\"duplicate\"").findAll(body).count()
                    failCount = errorCount + duplicateCount
                 } else if (body.contains("\"error\"")) {
+                    Log.w(TAG, "Server returned an error JSON: $body")
                     return@use UploadSummary(
                         total = uris.size,
                         success = 0,
@@ -80,16 +93,18 @@ object UploadService {
                     )
                 }
 
-                UploadSummary(
+                val summary = UploadSummary(
                     total = uris.size,
                     success = successCount,
                     failed = failCount,
                     errorMessage = if (failCount > 0) "Some files failed to upload" else null
                 )
+                Log.d(TAG, "Upload summary: $summary")
+                summary
             }
 
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Exception during upload process", e)
             UploadSummary(
                 total = uris.size,
                 success = 0,
@@ -101,6 +116,7 @@ object UploadService {
 
     private fun getFileName(context: Context, uri: Uri): String? {
         var result: String? = null
+        Log.d(TAG, "[getFileName]: getFileName: $uri")
         if (uri.scheme == "content") {
             val cursor = context.contentResolver.query(uri, null, null, null, null)
             cursor?.use {

@@ -30,8 +30,8 @@ import androidx.compose.material.icons.Icons
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(
-        onOpenSettings = {},
-        onOpenConnections = {}
+        onOpenConnections = {},
+        onOpenSettings = {}
     )
 }
 

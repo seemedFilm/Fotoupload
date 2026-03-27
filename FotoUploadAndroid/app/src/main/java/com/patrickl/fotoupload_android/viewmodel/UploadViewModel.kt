@@ -2,6 +2,7 @@ package com.patrickl.fotoupload_android.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
@@ -11,6 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+
+private const val TAG = "UploadViewModel.kt"
+private const val file = "upload.php"
 class UploadViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(UploadUiState())
@@ -36,14 +40,23 @@ class UploadViewModel : ViewModel() {
                 val isWifi = NetworkUtils.isWifiConnected(context)
                 val host = if (isWifi) profile.intUrl else profile.extUrl.ifBlank { profile.intUrl }
                 val protocol = if (profile.useSsl) "https" else "http"
-                val baseUrl = "$protocol://$host:${profile.port}"
-
+                val baseUrl = if ((profile.port == 80) || (profile.port == 443)) {
+                    "$protocol://$host"
+                }
+                else {
+                    "$protocol://$host:${profile.port}"
+                }
+                
+                Log.d(TAG, "[uploadImages]: isWifi:${isWifi}, host:${host}, baseUrl:${baseUrl}")
+                
                 val result = UploadService.uploadMultipleImages(
                     context,
                     images,
-                    baseUrl
+                    baseUrl,
+                    profile
                 )
-
+                
+//                Log.d(TAG, "[uploadImages]: Upload finished: $result")
                 _uiState.value = _uiState.value.copy(
                     isUploading = false,
                     uploadSummary = result,
@@ -51,6 +64,7 @@ class UploadViewModel : ViewModel() {
                 )
 
             } catch (e: Exception) {
+                Log.e(TAG, "[uploadImages]: Exception during upload", e)
                 _uiState.value = _uiState.value.copy(
                     isUploading = false,
                     errorMessage = e.message
