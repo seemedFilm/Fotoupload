@@ -9,9 +9,7 @@ import kotlinx.coroutines.flow.first
 class ConnectionRepository(
     private val storage: ConnectionStorage
 ) {
-
     val store: Flow<ConnectionStore> = storage.storeFlow
-
     val connections: Flow<List<ConnectionProfile>> =
         storage.storeFlow.map { store ->
             store.connections

@@ -44,7 +44,7 @@ class ConnectionStorage(private val context: Context) {
 
             1 -> store
 
-            // Beispiel für zukünftige Migration:
+            // Sample for migration
             // 1 -> migrateV1toV2(store)
 
             else -> store

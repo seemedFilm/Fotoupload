@@ -18,10 +18,8 @@ fun AppNavigation() {
 
     val navController = rememberNavController()
     val context = LocalContext.current
-
     val storage = remember { ConnectionStorage(context) }
     val repository = remember { ConnectionRepository(storage) }
-
     val connectionViewModel: ConnectionViewModel =
         viewModel(factory = ConnectionViewModelFactory(repository))
 
@@ -40,11 +38,9 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable("connections") {
             ConnectionListScreen(navController, connectionViewModel)
         }
-
         composable("connection_add") {
             ConnectionSettingsScreen(navController, connectionViewModel)
         }

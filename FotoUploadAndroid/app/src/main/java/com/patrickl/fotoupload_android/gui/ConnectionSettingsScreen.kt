@@ -29,12 +29,10 @@ fun ConnectionSettingsScreen(
     navController: NavHostController,
     connectionViewModel: ConnectionViewModel
 ) {
-    Log.d(TAG, "$TAG loaded")
     val context = LocalContext.current
     val enrollmentViewModel: EnrollmentViewModel = viewModel(
         factory = EnrollmentViewModelFactory(context.applicationContext)
     )
-
     val state by enrollmentViewModel.state.collectAsState()
 
     var name by remember { mutableStateOf(if (BuildConfig.DEBUG) "Bilderrahmen" else "") }

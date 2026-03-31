@@ -22,7 +22,7 @@ class EnrollmentApi(
         username: String,
         password: String
     ): String {
-        Log.d(TAG, "login: Attempting login to $intUrl/login.php for user: $username")
+        Log.d(TAG, "[login]: Attempting login to $intUrl/login.php for user: $username")
         val json = JSONObject().apply {
             put("username", username)
             put("password", password)
@@ -37,15 +37,15 @@ class EnrollmentApi(
         try {
             client.newCall(request).execute().use { response ->
                 val responseBody = response.body?.string()
-                Log.d(TAG, "login: Server responded with HTTP ${response.code}")
+                Log.d(TAG, "[login]: Server responded with HTTP ${response.code}")
                 
                 if (!response.isSuccessful) {
-                    Log.e(TAG, "login: Login failed. Code: ${response.code}, Body: $responseBody")
-                    throw Exception("Login failed: ${response.code}")
+                    Log.e(TAG, "[login]: Login failed. Code: ${response.code}, Body: $responseBody")
+                    throw Exception("[Login] failed: ${response.code}")
                 }
                 
                 if (responseBody == null) {
-                    Log.e(TAG, "login: Received empty response body")
+                    Log.e(TAG, "[login]: Received empty response body")
                     throw Exception("Empty response")
                 }
                 

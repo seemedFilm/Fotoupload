@@ -20,28 +20,21 @@ class EnrollmentRepository(
 ) {
 
     suspend fun enroll(profile: ConnectionProfile) = withContext(Dispatchers.IO) {
-        Log.d(TAG, "enroll: Starting enrollment for profile ${profile.name}")
+        Log.d(TAG, "[enroll]: Starting enrollment for profile ${profile.name}")
         val alias = "client_cert_${profile.id}"
         
         try {
-
             val resolver = ConnectionResolver()
             val baseUrl = resolver.resolve(profile)
             val client = HttpClientProvider.getClient(baseUrl)
-
-            Log.d(TAG, "enroll: Resolved base URL to $baseUrl")
-
             val api = EnrollmentApi(client, baseUrl)
             val token = api.login(
                 username = profile.username,
                 password = profile.password
             )
-            Log.d(TAG, "enroll: Login successful")
-
-            // IMPORTANT: KeyPair MUST be generated before generating CSR
-            Log.d(TAG, "enroll: Generating key pair for alias: $alias")
+            Log.d(TAG, "[enroll]: Login successful")
+            Log.d(TAG, "[enroll]: Generating key pair for alias: $alias")
             KeyStoreManager.generateKeyPairIfNeeded(alias)
-
             val deviceName = DeviceInfo.getDeviceName(context)
                 .replace("[^a-zA-Z0-9_-]".toRegex(), "_")
             Log.d(TAG, "[enroll]: Generating CSR for device: $deviceName")
@@ -52,7 +45,6 @@ class EnrollmentRepository(
                 csr = csr
             )
             Log.d(TAG, "[enroll]: CSR enrolled successfully. Server response: $response")
-
             CertificateInstaller.installCertificate(
                 context = context,
                 alias = alias,

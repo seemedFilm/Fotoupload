@@ -1,5 +1,6 @@
 package com.patrickl.fotoupload_android.network
 
+import android.util.Log
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -7,6 +8,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+
+private const val TAG = "ConnectionResolver.kt"
 
 class ConnectionResolver {
 
@@ -55,6 +58,7 @@ class ConnectionResolver {
         }
         
         val errorDetail = if (errors.isEmpty()) "Keine URLs konfiguriert" else errors.joinToString("\n")
+        Log.e(TAG, errorDetail)
         throw Exception("Verbindung fehlgeschlagen:\n$errorDetail")
     }
 }

@@ -9,4 +9,5 @@ data class ConnectionStore(
     val activeId: String? = null
 )
 
+// If the current schema changes, increment this version and the ConnectionStorage.migrateIfNeeded()
 const val CURRENT_SCHEMA_VERSION = 1
