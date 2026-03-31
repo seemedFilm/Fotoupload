@@ -27,13 +27,13 @@ object CsrGenerator {
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             val privateKey = keyStore.getKey(alias, null) as? PrivateKey
             if (privateKey == null) {
-                Log.e(TAG, "generateCsr: PrivateKey for alias '$alias' not found in Keystore")
+                Log.e(TAG, "[generateCsr]: PrivateKey for alias '$alias' not found in Keystore")
                 throw IllegalStateException("PrivateKey not found in Keystore")
             }
 
             val cert = keyStore.getCertificate(alias)
             if (cert == null) {
-                Log.e(TAG, "generateCsr: Certificate for alias '$alias' not found in Keystore")
+                Log.e(TAG, "[generateCsr]: Certificate for alias '$alias' not found in Keystore")
                 throw IllegalStateException("Certificate not found in Keystore")
             }
 
@@ -47,7 +47,7 @@ object CsrGenerator {
             val csr: PKCS10CertificationRequest = csrBuilder.build(signer)
             val pem = Base64.getEncoder().encodeToString(csr.encoded)
             
-            Log.i(TAG, "generateCsr: CSR successfully generated for alias '$alias'")
+            Log.i(TAG, "[generateCsr]: CSR successfully generated for alias '$alias'")
             
             return """
                 -----BEGIN CERTIFICATE REQUEST-----
@@ -55,7 +55,7 @@ object CsrGenerator {
                 -----END CERTIFICATE REQUEST-----
             """.trimIndent()
         } catch (e: Exception) {
-            Log.e(TAG, "generateCsr: Failed to generate CSR for alias '$alias'", e)
+            Log.e(TAG, "[generateCsr]: Failed to generate CSR for alias '$alias'", e)
             throw e
         }
     }

@@ -62,7 +62,7 @@ class EnrollmentApi(
         token: String,
         csr: String
     ): EnrollmentResponse {
-        Log.d(TAG, "enroll: Attempting enrollment to $intUrl/enroll.php")
+        Log.d(TAG, "[enroll]: Attempting enrollment to $intUrl/enroll.php")
         val json = JSONObject().apply {
             put("token", token)
             put("csr", csr)
@@ -80,12 +80,12 @@ class EnrollmentApi(
                 Log.d(TAG, "enroll: Server responded with HTTP ${response.code}")
                 
                 if (responseBody == null) {
-                    Log.e(TAG, "enroll: Received empty response body")
+                    Log.e(TAG, "[enroll]: Received empty response body")
                     throw Exception("Empty response")
                 }
 
                 if (!response.isSuccessful) {
-                    Log.e(TAG, "enroll: Enrollment failed. Code: ${response.code}, Body: $responseBody")
+                    Log.e(TAG, "[enroll]: Enrollment failed. Code: ${response.code}, Body: $responseBody")
                     throw Exception("Enrollment failed: ${response.code} - $responseBody")
                 }
                 
@@ -95,7 +95,7 @@ class EnrollmentApi(
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "enroll: Exception during enrollment process", e)
+            Log.e(TAG, "[enroll]: Exception during enrollment process", e)
             throw e
         }
     }

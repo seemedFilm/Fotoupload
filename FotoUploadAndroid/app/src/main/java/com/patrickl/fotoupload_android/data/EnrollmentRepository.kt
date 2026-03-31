@@ -43,23 +43,24 @@ class EnrollmentRepository(
             KeyStoreManager.generateKeyPairIfNeeded(alias)
 
             val deviceName = DeviceInfo.getDeviceName(context)
-            Log.d(TAG, "enroll: Generating CSR for device: $deviceName")
+                .replace("[^a-zA-Z0-9_-]".toRegex(), "_")
+            Log.d(TAG, "[enroll]: Generating CSR for device: $deviceName")
             val csr = CsrGenerator.generateCsr(deviceName, alias)
 
             val response = api.enroll(
                 token = token,
                 csr = csr
             )
-            Log.d(TAG, "enroll: CSR enrolled successfully. Server response: $response")
+            Log.d(TAG, "[enroll]: CSR enrolled successfully. Server response: $response")
 
             CertificateInstaller.installCertificate(
                 context = context,
                 alias = alias,
                 clientCertPem = response.certificate
             )
-            Log.d(TAG, "enroll: Certificate installed successfully")
+            Log.d(TAG, "[enroll]: Certificate installed successfully")
         } catch (e: Exception) {
-            Log.e(TAG, "enroll: Enrollment failed", e)
+            Log.e(TAG, "[enroll]: Enrollment failed", e)
             throw e
         }
     }

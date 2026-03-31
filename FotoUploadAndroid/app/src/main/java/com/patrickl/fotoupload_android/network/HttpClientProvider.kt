@@ -9,7 +9,7 @@ private const val TAG = "HttpClientProvider.kt"
 object HttpClientProvider {
 
     fun getClient(baseUrl: String): OkHttpClient {
-        Log.d(TAG, "is Local? ${isLocal(baseUrl)}")
+        Log.d(TAG, "[getClient]: Connection is Local? ${isLocal(baseUrl)}")
         return if (isLocal(baseUrl)) {
             createLocalClient()
         } else {

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
+import com.patrickl.fotoupload_android.security.KeyStoreManager.getClientCertPem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
@@ -39,32 +40,31 @@ object UploadService {
                 
                 val inputStream = context.contentResolver.openInputStream(uri)
                     ?: return@forEach
-
                 val bytes = inputStream.use { it.readBytes() }
                 val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
-
                 multipartBuilder.addFormDataPart(
                     "files[]",
                     fileName,
                     requestBody
                 )
             }
-
             val requestBody = multipartBuilder.build()
+            val clientCertPem = getClientCertPem(alias)
+            Log.d(TAG, "[uploadMultipleImages]: Sending cert for alias: $alias")
             val request = Request.Builder()
                 .url(uploadUrl)
+                .addHeader("X-Client-Cert", clientCertPem)
+                .addHeader("X-Client-Alias", alias)
                 .post(requestBody)
                 .build()
-
             Log.d(TAG, "Executing POST request to: $uploadUrl")
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string()
+                Log.d(TAG, "[uploadMultipleImages]: Server responded with HTTP ${response.code}: $body")
 
-                Log.d(TAG, "Server responded with HTTP ${response.code}")
                 if (response.code != 200) {
-                    Log.w(TAG, "Non-200 response received. Body snippet: ${body?.take(200)}")
+                    Log.w(TAG, "[uploadMultipleImages]: Non-200 response received. Body snippet: ${body?.take(200)}")
                 }
-
                 if (!response.isSuccessful || body == null) {
                     Log.e(TAG, "Request failed. Code: ${response.code}, Body: $body")
                     return@use UploadSummary(
@@ -74,10 +74,8 @@ object UploadService {
                         errorMessage = "Server error (${response.code}): $body"
                     )
                 }
-
                 var successCount = 0
                 var failCount = 0
-
                 if (body.contains("\"status\":\"ok\"") || body.contains("\"status\":\"completed\"")) {
                    successCount = Regex("\"status\"\\s*:\\s*\"ok\"").findAll(body).count()
                    val errorCount = Regex("\"status\"\\s*:\\s*\"error\"").findAll(body).count()

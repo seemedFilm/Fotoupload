@@ -2,6 +2,7 @@ package com.patrickl.fotoupload_android.security
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Base64
 import android.util.Log
 import java.security.KeyPairGenerator
 import java.security.KeyStore
@@ -16,11 +17,11 @@ object KeyStoreManager {
         try {
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             if (keyStore.containsAlias(alias)) {
-                Log.d(TAG, "generateKeyPairIfNeeded: Alias '$alias' already exists.")
+                Log.d(TAG, "[generateKeyPairIfNeeded]: Alias '$alias' already exists.")
                 return
             }
             
-            Log.d(TAG, "generateKeyPairIfNeeded: Creating new key pair for alias '$alias'")
+            Log.d(TAG, "[generateKeyPairIfNeeded]: Creating new key pair for alias '$alias'")
             val keyPairGenerator = KeyPairGenerator.getInstance(
                 KeyProperties.KEY_ALGORITHM_RSA,
                 ANDROID_KEYSTORE
@@ -36,9 +37,9 @@ object KeyStoreManager {
 
             keyPairGenerator.initialize(spec)
             keyPairGenerator.generateKeyPair()
-            Log.i(TAG, "generateKeyPairIfNeeded: Key pair successfully generated for alias '$alias'")
+            Log.i(TAG, "[generateKeyPairIfNeeded]: Key pair successfully generated for alias '$alias'")
         } catch (e: Exception) {
-            Log.e(TAG, "generateKeyPairIfNeeded: Failed to generate key pair for alias '$alias'", e)
+            Log.e(TAG, "[generateKeyPairIfNeeded]: Failed to generate key pair for alias '$alias'", e)
             throw e
         }
     }
@@ -51,12 +52,20 @@ object KeyStoreManager {
             throw e
         }
     }
+    fun getClientCertPem(alias: String): String {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
 
+        val cert = keyStore.getCertificate(alias)
+            ?: throw Exception("No certificate for alias $alias")
+
+        return Base64.encodeToString(cert.encoded, Base64.NO_WRAP)
+    }
     fun getCertificate(alias: String) =
         try {
             getKeyStore().getCertificate(alias)
         } catch (e: Exception) {
-            Log.w(TAG, "getCertificate: Could not find certificate for alias '$alias'")
+            Log.w(TAG, "[getCertificate]: Could not find certificate for alias '$alias'")
             null
         }
 
@@ -65,10 +74,10 @@ object KeyStoreManager {
             val keyStore = getKeyStore()
             if (keyStore.containsAlias(alias)) {
                 keyStore.deleteEntry(alias)
-                Log.i(TAG, "deleteKey: Deleted entry for alias '$alias'")
+                Log.i(TAG, "[deleteKey]: Deleted entry for alias '$alias'")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "deleteKey: Failed to delete entry for alias '$alias'", e)
+            Log.e(TAG, "[deleteKey]: Failed to delete entry for alias '$alias'", e)
         }
     }
 
