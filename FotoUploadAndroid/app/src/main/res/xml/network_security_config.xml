@@ -1,9 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
 
-    <!-- LAN HTTP Zugriff erlauben -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">192.168.1.190</domain>
+    <!-- Remote -->
+    <domain-config>
+        <domain includeSubdomains="true">bilder.diefamilielang.de</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Lokal -->
+    <domain-config>
+        <domain includeSubdomains="true">bilderrahmen1.zuhause</domain>
+        <trust-anchors>
+            <certificates src="@raw/ca_cert"/>
+        </trust-anchors>
     </domain-config>
 
 </network-security-config>
