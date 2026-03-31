@@ -1,0 +1,16 @@
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.MainForm.resources
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.csproj.GenerateResource.cache
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.AssemblyInfoInputs.cache
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.AssemblyInfo.cs
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.csproj.CoreCompileInputs.cache
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\bin\Debug\net10.0-windows\Fotoupload.exe
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\bin\Debug\net10.0-windows\Fotoupload.deps.json
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\bin\Debug\net10.0-windows\Fotoupload.runtimeconfig.json
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\bin\Debug\net10.0-windows\Fotoupload.dll
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\bin\Debug\net10.0-windows\Fotoupload.pdb
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.dll
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\refint\Fotoupload.dll
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.pdb
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\Fotoupload.genruntimeconfig.cache
+C:\Users\Patrick\source\repos\Fotoupload\Fotoupload\obj\Debug\net10.0-windows\ref\Fotoupload.dll
