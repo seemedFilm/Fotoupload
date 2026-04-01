@@ -98,13 +98,13 @@ fun HomeScreen(
             Text(
                 text = "Foto Upload zu",
                 style = MaterialTheme.typography.headlineLarge,
-                fontSize = 50.sp,
+                fontSize = 35.sp,
                 color = Color.Red
             )
             Text(
                 text = activeConnection?.name ?: "Keine Verbindung gewählt",
-                style = MaterialTheme.typography.headlineLarge,
-                fontSize = 30.sp,
+                style = MaterialTheme.typography.headlineMedium,
+//                fontSize = 10.sp,
                 color = Color.Green
             )
             Spacer(modifier = Modifier.height(50.dp))
