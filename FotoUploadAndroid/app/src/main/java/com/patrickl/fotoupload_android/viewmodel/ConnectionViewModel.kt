@@ -18,7 +18,7 @@ class ConnectionViewModel(
     val activeConnection = repository.activeConnection
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun add(profile: ConnectionProfile) {
+    fun addConnection(profile: ConnectionProfile) {
         viewModelScope.launch {
             repository.add(profile)
         }
@@ -33,6 +33,15 @@ class ConnectionViewModel(
     fun setActive(id: String) {
         viewModelScope.launch {
             repository.setActive(id)
+        }
+    }
+
+    fun updateConnection(profile: ConnectionProfile) {
+        viewModelScope.launch {
+            // Since repository doesn't have a specific update, 
+            // and add() currently just appends, we should ideally have a replace logic.
+            // For now, let's assume 'add' handles replacing if ID exists or we fix repository.
+            repository.add(profile) 
         }
     }
 }

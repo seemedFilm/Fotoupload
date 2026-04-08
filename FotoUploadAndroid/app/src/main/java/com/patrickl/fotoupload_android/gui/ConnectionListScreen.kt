@@ -15,8 +15,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.patrickl.fotoupload_android.ui.theme.activeStatus
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.unit.sp
+
 private const val TAG = "ConnectionListScreen.kt"
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun ConnectionListScreen(
     navController: NavHostController,
@@ -28,7 +35,7 @@ fun ConnectionListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Verbindungen", style = MaterialTheme.typography.headlineLarge) }
+                title = { Text("Verbindungen", style = MaterialTheme.typography.headlineLarge, fontSize = 24.sp) }
             )
         },
         floatingActionButton = {
@@ -49,39 +56,65 @@ fun ConnectionListScreen(
         ) {
             items(connections) { connection ->
                 val isActive = connection.id == active?.id
+                var expanded by remember { mutableStateOf(false) }
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp) // External spacing between cards
+                        .padding(vertical = 6.dp)
                         .then(
                             if (isActive) Modifier.border(
                                 width = 3.dp,
                                 color = MaterialTheme.colorScheme.activeStatus,
                                 shape = CardDefaults.shape
                             ) else Modifier
-                        ),
-                    onClick = {
-                        viewModel.setActive(connection.id)
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(connection.name, style = MaterialTheme.typography.titleMedium)
-                            Text("${connection.intUrl}:${connection.port}", style = MaterialTheme.typography.titleMedium)
-                            Text("${connection.extUrl}:${connection.port}", style = MaterialTheme.typography.titleLarge)
-//                            if (connection.id == active?.id) {
-//                                Text("Aktiv", color = MaterialTheme.colorScheme.activeStatus)
-//                            }
-                        }
-                        IconButton(
+                        )
+                        .combinedClickable(
                             onClick = {
-                                viewModel.delete(connection.id)
+                                viewModel.setActive(connection.id)
+                            },
+                            onLongClick = {
+                                expanded = true
                             }
+                        )
+                ) {
+                    Box {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Column {
+                                Text(connection.name, style = MaterialTheme.typography.titleMedium)
+                                Text("${connection.intUrl}:${connection.port}")
+                                Text("${connection.extUrl}:${connection.port}")
+                            }
+                            IconButton(
+                                onClick = {
+                                    viewModel.delete(connection.id)
+                                }
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = null)
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Verbindung bearbeiten") },
+                                onClick = {
+                                    expanded = false
+                                    navController.navigate("connection_edit/${connection.id}")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Erweiterte Einstellungen") },
+                                onClick = {
+                                    expanded = false
+                                    navController.navigate("connection_advanced/${connection.id}")
+                                }
+                            )
                         }
                     }
                 }

@@ -56,11 +56,11 @@ class UploadViewModel : ViewModel() {
                     profile
                 )
                 
-//                Log.d(TAG, "[uploadImages]: Upload finished: $result")
                 _uiState.value = _uiState.value.copy(
                     isUploading = false,
                     uploadSummary = result,
-                    selectedImages = emptyList()
+                    // Only clear selection if there are NO failures
+                    selectedImages = if (result.failed == 0) emptyList() else _uiState.value.selectedImages
                 )
 
             } catch (e: Exception) {

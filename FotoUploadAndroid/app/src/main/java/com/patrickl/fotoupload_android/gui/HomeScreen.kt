@@ -8,9 +8,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,20 +15,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.PhotoLibrary
+import com.patrickl.fotoupload_android.ui.theme.Green80
 
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(
         onOpenConnections = {},
-        onOpenSettings = {}
+        onOpenSettings = {},
+        onOpenPictureList = {}
     )
 }
 
@@ -40,6 +37,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     uploadViewModel: UploadViewModel = viewModel(),
     connectionViewModel: ConnectionViewModel? = null,
+    onOpenPictureList: () -> Unit,
     onOpenConnections: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
@@ -91,98 +89,95 @@ fun HomeScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = "Foto Upload zu",
                 style = MaterialTheme.typography.headlineLarge,
-                fontSize = 35.sp,
-                color = Color.Red
+                fontSize = 32.sp,
+                color = Green80
             )
             Text(
                 text = activeConnection?.name ?: "Keine Verbindung gewählt",
-                style = MaterialTheme.typography.headlineMedium,
-//                fontSize = 10.sp,
-                color = Color.Green
+                style = MaterialTheme.typography.headlineLarge,
+                color = if (activeConnection != null)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            Color.Red,
+                fontSize = 32.sp
             )
-            Spacer(modifier = Modifier.height(50.dp))
-            Button(onClick = {
-                launcher.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
-                    )
-                )
-            }) {
-                Text("Mehrere Bilder auswählen")
-            }
+            Spacer(modifier = Modifier.height(24.dp))
             Button(
-                onClick = { 
+                onClick = {
+                    onOpenPictureList()
+                },
+                enabled =  activeConnection != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text ="Bilder Auflisten",
+                    fontSize = 18.sp,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // -- HOCHLADEN BUTTON --
+            Button(
+                onClick = {
                     activeConnection?.let { uploadViewModel.uploadImages(context, it) }
                 },
-                enabled = !uiState.isUploading &&
-                        uiState.selectedImages.isNotEmpty() &&
-                        activeConnection != null
+                enabled = uiState.selectedImages.isNotEmpty() && !uiState.isUploading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
-                Text("Hochladen")
+                if (uiState.isUploading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text("Wird hochgeladen...", fontSize = 18.sp)
+                } else {
+                    Icon(Icons.Default.CloudUpload, contentDescription = null)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Hochladen", fontSize = 18.sp)
+                }
             }
-            if (uiState.isUploading) {
-                CircularProgressIndicator()
-                Text("Upload läuft...")
-            }
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp)
-            ) {
-                items(uiState.selectedImages) { uri ->
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .size(120.dp)
+            
+            Spacer(modifier = Modifier.height(32.dp))
+
+            if (uiState.errorMessage != null) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = uiState.errorMessage!!,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
-        }
-
-        uiState.uploadSummary?.let { summary ->
-            AlertDialog(
-                onDismissRequest = { uploadViewModel.dismissDialog() },
-                confirmButton = {
-                    TextButton(onClick = { uploadViewModel.dismissDialog() }) {
-                        Text("OK")
-                    }
-                },
-                title = { Text("Upload Status") },
-                text = {
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                        Text("Gesamt: ${summary.total}")
-                        Text("Erfolgreich: ${summary.success}", color = Color(0xFF4CAF50))
-                        Text("Fehlerhaft: ${summary.failed}", color = if (summary.failed > 0) Color.Red else Color.Unspecified)
-                        
-                        summary.errorMessage?.let { error ->
-                            Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider()
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Details / Server Response:",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                            SelectionContainer {
-                                Text(
-                                    text = error,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-                }
-            )
         }
     }
 }
