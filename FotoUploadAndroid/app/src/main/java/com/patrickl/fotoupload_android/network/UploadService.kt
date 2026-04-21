@@ -5,30 +5,48 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
-import com.patrickl.fotoupload_android.security.KeyStoreManager.getClientCertPem
+import com.patrickl.fotoupload_android.security.KeyStoreManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 
 private const val TAG = "UploadService.kt"
 
 object UploadService {
 
+    private fun getBaseUrl(profile: ConnectionProfile): String {
+        val host = profile.extUrl.ifBlank { profile.intUrl }
+        val protocol = if (profile.useSsl) "https" else "http"
+        val defaultPort = if (profile.useSsl) 443 else 80
+        val portPart = if (profile.port == defaultPort || profile.port == 0) "" else ":${profile.port}"
+        return "$protocol://$host$portPart"
+    }
+
     suspend fun uploadMultipleImages(
         context: Context,
         uris: List<Uri>,
-        baseUrl: String,
         profile: ConnectionProfile
     ): UploadSummary = withContext(Dispatchers.IO) {
+        val baseUrl = getBaseUrl(profile)
         val uploadUrl = "${baseUrl.trimEnd('/')}/upload.php"
-        Log.d(TAG, "[uploadMultipleImages]: Starting upload of ${uris.size} files to $uploadUrl")
-
         val alias = "client_cert_${profile.id}"
-        val factory = MtlsHttpClientFactory(context)
-        val client = HttpClientProvider.getClient(uploadUrl)
+        
+        Log.d(TAG, "[uploadMultipleImages]: Starting upload of ${uris.size} files to $uploadUrl using alias: $alias")
+
+        var certPem: String? = null
+        try {
+            certPem = KeyStoreManager.getClientCertPem(alias)
+            Log.d(TAG, "[uploadMultipleImages]: Certificate retrieved successfully")
+        } catch (e: Exception) {
+            Log.w(TAG, "[uploadMultipleImages]: Could not retrieve certificate: ${e.message}")
+        }
+
+        // 1. Create client with mTLS handshake support
+        val client = MtlsHttpClientFactory(context).create(alias)
 
         try {
             val multipartBuilder = MultipartBody.Builder()
@@ -48,25 +66,24 @@ object UploadService {
                     requestBody
                 )
             }
+            
             val requestBody = multipartBuilder.build()
-            val clientCertPem = getClientCertPem(alias)
-            Log.d(TAG, "[uploadMultipleImages]: Sending cert for alias: $alias")
-            val request = Request.Builder()
+            val requestBuilder = Request.Builder()
                 .url(uploadUrl)
-                .addHeader("X-Client-Cert", clientCertPem)
-                .addHeader("X-Client-Alias", alias)
                 .post(requestBody)
-                .build()
-            Log.d(TAG, "Executing POST request to: $uploadUrl")
+
+            // Optional: If your server specifically checks for this header even with mTLS
+            if (certPem != null) {
+                requestBuilder.addHeader("X-Client-Cert", certPem)
+            }
+
+            val request = requestBuilder.build()
+
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string()
                 Log.d(TAG, "[uploadMultipleImages]: Server responded with HTTP ${response.code}: $body")
 
-                if (response.code != 200) {
-                    Log.w(TAG, "[uploadMultipleImages]: Non-200 response received. Body snippet: ${body?.take(200)}")
-                }
                 if (!response.isSuccessful || body == null) {
-                    Log.e(TAG, "Request failed. Code: ${response.code}, Body: $body")
                     return@use UploadSummary(
                         total = uris.size,
                         success = 0,
@@ -74,31 +91,26 @@ object UploadService {
                         errorMessage = "Server error (${response.code}): $body"
                     )
                 }
+                
                 var successCount = 0
                 var failCount = 0
+                // Simple parsing for JSON response
                 if (body.contains("\"status\":\"ok\"") || body.contains("\"status\":\"completed\"")) {
                    successCount = Regex("\"status\"\\s*:\\s*\"ok\"").findAll(body).count()
                    val errorCount = Regex("\"status\"\\s*:\\s*\"error\"").findAll(body).count()
                    val duplicateCount = Regex("\"status\"\\s*:\\s*\"duplicate\"").findAll(body).count()
                    failCount = errorCount + duplicateCount
-                } else if (body.contains("\"error\"")) {
-                    Log.w(TAG, "Server returned an error JSON: $body")
-                    return@use UploadSummary(
-                        total = uris.size,
-                        success = 0,
-                        failed = uris.size,
-                        errorMessage = body
-                    )
+                } else if (response.code == 200) {
+                    // Fallback if the body doesn't match expected JSON but HTTP was 200
+                    successCount = uris.size
                 }
 
-                val summary = UploadSummary(
+                UploadSummary(
                     total = uris.size,
                     success = successCount,
                     failed = failCount,
                     errorMessage = if (failCount > 0) "Some files failed to upload" else null
                 )
-                Log.d(TAG, "Upload summary: $summary")
-                summary
             }
 
         } catch (e: Exception) {
@@ -112,9 +124,57 @@ object UploadService {
         }
     }
 
+    suspend fun fetchUploadedImages(
+        context: Context,
+        profile: ConnectionProfile
+    ): List<String> = withContext(Dispatchers.IO) {
+        val baseUrl = getBaseUrl(profile)
+        val listUrl = "${baseUrl.trimEnd('/')}/list.php"
+        val alias = "client_cert_${profile.id}"
+
+        var certPem: String? = null
+        try {
+            certPem = KeyStoreManager.getClientCertPem(alias)
+        } catch (e: Exception) {
+            Log.w(TAG, "[fetchUploadedImages]: Could not retrieve certificate: ${e.message}")
+        }
+
+        val client = MtlsHttpClientFactory(context).create(alias)
+        
+        Log.d(TAG, "[fetchUploadedImages]: connecting to: $listUrl")
+        try {
+            val requestBuilder = Request.Builder()
+                .url(listUrl)
+                .get()
+            
+            if (certPem != null) {
+                requestBuilder.addHeader("X-Client-Cert", certPem)
+            }
+
+            val request = requestBuilder.build()
+
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string() ?: return@use emptyList()
+                if (response.isSuccessful) {
+                    return@use try {
+                        Json.decodeFromString<List<String>>(body)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing JSON list: $body")
+                        emptyList()
+                    }
+                } else {
+                    Log.e(TAG, "[fetchUploadedImages] failed: ${response.code} $body")
+                    emptyList()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching images", e)
+            emptyList()
+        }
+    }
+
     private fun getFileName(context: Context, uri: Uri): String? {
         var result: String? = null
-        Log.d(TAG, "[getFileName]: getFileName: $uri")
         if (uri.scheme == "content") {
             val cursor = context.contentResolver.query(uri, null, null, null, null)
             cursor?.use {

@@ -13,6 +13,7 @@ import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import androidx.compose.runtime.remember
 import com.patrickl.fotoupload_android.gui.ConnectionSettingsScreen
 import com.patrickl.fotoupload_android.gui.PictureList
+import com.patrickl.fotoupload_android.gui.Uploading
 
 @Composable
 fun AppNavigation() {
@@ -31,12 +32,10 @@ fun AppNavigation() {
         composable("home") {
             HomeScreen(
                 connectionViewModel = connectionViewModel,
-
-                onOpenConnections = {
-                    navController.navigate("connections")
-                },
+                onOpenConnections = { navController.navigate("connections") },
                 onOpenSettings = { navController.navigate("settings") },
-                onOpenPictureList = { navController.navigate("picture_list") } // Handle navigation here
+                onOpenUploading = { navController.navigate("uploading") },
+                onOpenPictureList = { navController.navigate("picture_list") }
             )
         }
         composable("connections") {
@@ -55,6 +54,14 @@ fun AppNavigation() {
                     navController.navigate("connections")
                 },
                 onOpenSettings = { navController.navigate("settings") }
+            )
+        }
+        composable("uploading") {
+            Uploading(
+                connectionViewModel = connectionViewModel,
+                onOpenConnections = { navController.navigate("connections") },
+                onOpenSettings = { navController.navigate("settings") },
+                onOpenPictureList = { navController.navigate("picture_list") }
             )
         }
         composable("connection_edit/{id}") { backStackEntry ->

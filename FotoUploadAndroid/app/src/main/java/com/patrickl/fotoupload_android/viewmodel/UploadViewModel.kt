@@ -14,7 +14,6 @@ import kotlinx.coroutines.launch
 
 
 private const val TAG = "UploadViewModel.kt"
-private const val file = "upload.php"
 class UploadViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(UploadUiState())
@@ -24,6 +23,22 @@ class UploadViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             selectedImages = images
         )
+    }
+
+    fun fetchRemoteImages(context: Context, profile: ConnectionProfile) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isFetchingRemote = true)
+            try {
+                val remote = UploadService.fetchUploadedImages(context, profile)
+                _uiState.value = _uiState.value.copy(
+                    remoteImages = remote,
+                    isFetchingRemote = false
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error fetching remote images", e)
+                _uiState.value = _uiState.value.copy(isFetchingRemote = false)
+            }
+        }
     }
 
     fun uploadImages(context: Context, profile: ConnectionProfile) {
@@ -37,22 +52,9 @@ class UploadViewModel : ViewModel() {
             )
 
             try {
-                val isWifi = NetworkUtils.isWifiConnected(context)
-                val host = if (isWifi) profile.intUrl else profile.extUrl.ifBlank { profile.intUrl }
-                val protocol = if (profile.useSsl) "https" else "http"
-                val baseUrl = if ((profile.port == 80) || (profile.port == 443)) {
-                    "$protocol://$host"
-                }
-                else {
-                    "$protocol://$host:${profile.port}"
-                }
-                
-                Log.d(TAG, "[uploadImages]: isWifi:${isWifi}, host:${host}, baseUrl:${baseUrl}")
-                
                 val result = UploadService.uploadMultipleImages(
                     context,
                     images,
-                    baseUrl,
                     profile
                 )
                 

@@ -11,6 +11,11 @@ data class EnrollmentResponse(
     val certificate: String
 )
 
+data class LoginResponse(
+    val token: String,
+    val challenge: String?
+)
+
 private const val TAG = "EnrollmentApi.kt"
 
 class EnrollmentApi(
@@ -21,17 +26,17 @@ class EnrollmentApi(
     suspend fun login(
         username: String,
         password: String
-    ): String {
+    ): LoginResponse {
         Log.d(TAG, "[login]: Attempting login to $intUrl/login.php for user: $username")
         val json = JSONObject().apply {
             put("username", username)
             put("password", password)
         }
         val body = json.toString()
-            .toRequestBody("application/json".toMediaType())
+        val requestBody = body.toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url("$intUrl/login.php")
-            .post(body)
+            .post(requestBody)
             .build()
             
         try {
@@ -50,7 +55,10 @@ class EnrollmentApi(
                 }
                 
                 val jsonResponse = JSONObject(responseBody)
-                return jsonResponse.getString("token")
+                return LoginResponse(
+                    token = jsonResponse.getString("token"),
+                    challenge = jsonResponse.optString("challenge", null)
+                )
             }
         } catch (e: Exception) {
             Log.e(TAG, "login: Exception during login process", e)
@@ -58,20 +66,34 @@ class EnrollmentApi(
         }
     }
 
-    suspend fun enroll(
-        token: String,
-        csr: String
+//    suspend fun enroll(
+//        token: String,
+//        publicKey: String,
+//        signature: String,
+//        challenge: String,
+//        deviceId: String
+suspend fun enroll(
+    token: String,
+    csr: String
     ): EnrollmentResponse {
         Log.d(TAG, "[enroll]: Attempting enrollment to $intUrl/enroll.php")
         val json = JSONObject().apply {
             put("token", token)
             put("csr", csr)
+//            put("publicKey", publicKey)
+//            put("signature", signature)
+//            put("challenge", challenge)
+//            put("device_id", deviceId)
         }
         val body = json.toString()
-            .toRequestBody("application/json".toMediaType())
+        
+        // --- DEBUG LOG: Verify this JSON in Logcat! ---
+        Log.d(TAG, "[enroll]: Sending JSON body: $body")
+        
+        val requestBody = body.toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url("$intUrl/enroll.php")
-            .post(body)
+            .post(requestBody)
             .build()
 
         try {

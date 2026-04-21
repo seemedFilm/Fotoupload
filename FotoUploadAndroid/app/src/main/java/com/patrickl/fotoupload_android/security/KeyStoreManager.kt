@@ -26,12 +26,20 @@ object KeyStoreManager {
                 KeyProperties.KEY_ALGORITHM_RSA,
                 ANDROID_KEYSTORE
             )
+            
+            // Adding PURPOSE_DECRYPT and ENCRYPTION_PADDING_RSA_PKCS1 
+            // is often necessary for modern Android (Keystore2) to allow 
+            // the TLS stack (Conscrypt) to perform signing operations 
+            // using the private key through the Cipher API.
             val spec = KeyGenParameterSpec.Builder(
                 alias,
-                KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+                KeyProperties.PURPOSE_SIGN or 
+                KeyProperties.PURPOSE_VERIFY or 
+                KeyProperties.PURPOSE_DECRYPT
             )
-                .setDigests(KeyProperties.DIGEST_SHA256)
+                .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_NONE)
                 .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
                 .setKeySize(2048)
                 .build()
 
@@ -52,15 +60,20 @@ object KeyStoreManager {
             throw e
         }
     }
+
     fun getClientCertPem(alias: String): String {
-        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
         keyStore.load(null)
 
         val cert = keyStore.getCertificate(alias)
             ?: throw Exception("No certificate for alias $alias")
 
-        return Base64.encodeToString(cert.encoded, Base64.NO_WRAP)
+        // Use NO_WRAP to avoid newlines in the base64 content
+        val encodedCert = Base64.encodeToString(cert.encoded, Base64.NO_WRAP)
+        // Return as a single line PEM string (no newlines) for HTTP header compatibility
+        return "-----BEGIN CERTIFICATE-----$encodedCert-----END CERTIFICATE-----"
     }
+
     fun getCertificate(alias: String) =
         try {
             getKeyStore().getCertificate(alias)

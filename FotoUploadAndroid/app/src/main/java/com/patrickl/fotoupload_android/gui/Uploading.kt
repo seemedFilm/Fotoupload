@@ -1,60 +1,69 @@
 package com.patrickl.fotoupload_android.gui
 
-import com.patrickl.fotoupload_android.viewmodel.UploadViewModel
-import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.patrickl.fotoupload_android.ui.theme.Green80
+import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
+import com.patrickl.fotoupload_android.viewmodel.UploadViewModel
+
 
 @Preview(showBackground = true)
 @Composable
-fun HomeScreenPreview() {
-    HomeScreen(
+fun UploadingPreview() {
+    Uploading(
         onOpenConnections = {},
         onOpenSettings = {},
-        onOpenPictureList = {},
-        onOpenUploading = {}
+        onOpenPictureList = {}
     )
 }
 
 @Composable
-fun HomeScreen(
+fun Uploading(
     modifier: Modifier = Modifier,
     uploadViewModel: UploadViewModel = viewModel(),
     connectionViewModel: ConnectionViewModel? = null,
-    onOpenPictureList: () -> Unit,
     onOpenConnections: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenUploading: () -> Unit
+    onOpenPictureList: () -> Unit
 ) {
     val activeConnection =
         connectionViewModel?.activeConnection?.collectAsState()?.value
     val uiState by uploadViewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia()
-    ) { uris ->
-        uploadViewModel.setSelectedImages(uris)
-    }
-
     var expanded by remember { mutableStateOf(false) }
+
+    // Launcher for picking multiple images and videos
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(),
+        onResult = { uris ->
+            if (uris.isNotEmpty()) {
+                uploadViewModel.setSelectedImages(uris)
+            }
+        }
+    )
 
     Scaffold(
         floatingActionButton = {
@@ -96,24 +105,19 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Foto Upload zu",
+                text = "Uploading",
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = 32.sp,
                 color = Green80
             )
-            Text(
-                text = activeConnection?.name ?: "Keine Verbindung gewählt",
-                style = MaterialTheme.typography.headlineLarge,
-                color = if (activeConnection != null)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            Color.Red,
-                fontSize = 32.sp
-            )
+
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = {
-                    onOpenPictureList()
+                    // Launch the photo picker for images and videos
+                    launcher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                    )
                 },
                 enabled =  activeConnection != null,
                 modifier = Modifier
@@ -127,8 +131,13 @@ fun HomeScreen(
             ) {
                 Icon(Icons.Default.PhotoLibrary, contentDescription = null)
                 Spacer(Modifier.width(12.dp))
+                val buttonText = if (uiState.selectedImages.isEmpty()) {
+                    "Bilder/Videos auswählen"
+                } else {
+                    "${uiState.selectedImages.size} Dateien ausgewählt"
+                }
                 Text(
-                    text ="Bilder Auflisten",
+                    text = buttonText,
                     fontSize = 18.sp,
                 )
             }
@@ -138,10 +147,9 @@ fun HomeScreen(
             // -- HOCHLADEN BUTTON --
             Button(
                 onClick = {
-                    // activeConnection?.let { uploadViewModel.uploadImages(context, it) }
-                    onOpenUploading()
+                    activeConnection?.let { uploadViewModel.uploadImages(context, it) }
                 },
-                enabled = activeConnection != null,
+                enabled = activeConnection != null && !uiState.isUploading && uiState.selectedImages.isNotEmpty(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
@@ -165,8 +173,8 @@ fun HomeScreen(
                     Text("Hochladen", fontSize = 18.sp)
                 }
             }
-            
-            Spacer(modifier = Modifier.height(32.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (uiState.errorMessage != null) {
                 Card(
@@ -179,6 +187,54 @@ fun HomeScreen(
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            if (uiState.uploadSummary != null) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Upload abgeschlossen",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text("Erfolgreich: ${uiState.uploadSummary!!.success}")
+                        Text("Fehlgeschlagen: ${uiState.uploadSummary!!.failed}")
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = { uploadViewModel.dismissDialog() }) {
+                            Text("OK")
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // -- PREVIEW GRID --
+            if (uiState.selectedImages.isNotEmpty()) {
+                Text(
+                    text = "Vorschau:",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
+                )
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 100.dp),
+                    contentPadding = PaddingValues(4.dp),
+                    modifier = Modifier.weight(1f).fillMaxWidth()
+                ) {
+                    items(uiState.selectedImages) { uri ->
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }
