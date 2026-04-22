@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
@@ -13,6 +14,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.patrickl.fotoupload_android.BuildConfig
 import com.patrickl.fotoupload_android.domain.model.ConnectionProfile
 import com.patrickl.fotoupload_android.viewmodel.ConnectionViewModel
 import com.patrickl.fotoupload_android.viewmodel.EnrollmentViewModel
@@ -35,12 +37,21 @@ fun ConnectionSettingsScreen(
     )
     val enrollmentState by enrollmentViewModel.state.collectAsState()
 
-    var name by remember { mutableStateOf("") }
-    var intUrl by remember { mutableStateOf("") }
-    var extUrl by remember { mutableStateOf("") }
-    var port by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    // Default values for Debugging
+    val isDebug = BuildConfig.DEBUG && connectionId == null
+    
+    var name by remember { mutableStateOf(if (isDebug) "Test Server" else "") }
+    var intUrl by remember { mutableStateOf(if (isDebug) "192.168.1.190" else "") }
+    var extUrl by remember { mutableStateOf(if (isDebug) "bilder.diefamilielang.de" else "") }
+    var port by remember { mutableStateOf(if (isDebug) "443" else "") }
+    var username by remember { mutableStateOf(if (isDebug) "patrick" else "") }
+    var password by remember { mutableStateOf(if (isDebug) "patrick" else "") }
+    var useSsl by remember { mutableStateOf(if (isDebug) true else false) }
+    
+    // Hidden internal fields to preserve them during Edit
+    var resoW by remember { mutableIntStateOf(0) }
+    var resoH by remember { mutableIntStateOf(0) }
+
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -54,6 +65,9 @@ fun ConnectionSettingsScreen(
                 port = connection.port.toString()
                 username = connection.username
                 password = connection.password
+                useSsl = connection.useSsl
+                resoW = connection.resoW
+                resoH = connection.resoH
             }
         }
     }
@@ -153,6 +167,19 @@ fun ConnectionSettingsScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = useSsl,
+                    onCheckedChange = { useSsl = it }
+                )
+                Text("SSL verwenden")
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             if (isLoading) {
@@ -171,7 +198,10 @@ fun ConnectionSettingsScreen(
                         extUrl = extUrl,
                         port = portInt,
                         username = username,
-                        password = password
+                        password = password,
+                        useSsl = useSsl,
+                        resoW = resoW,
+                        resoH = resoH
                     )
 
                     if (connectionId == null) {
@@ -194,16 +224,17 @@ fun ConnectionSettingsScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
-            Button(
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            OutlinedButton(
                 onClick = {
-
+                    navController.popBackStack()
                 },
                 modifier = Modifier.fillMaxWidth(),
-
+                enabled = !isLoading
             ) {
-                Text(
-                    "Abbrechen"
-                )
+                Text("Abbrechen")
             }
         }
     }

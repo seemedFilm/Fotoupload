@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 private const val TAG = "ConnectionResolver.kt"
@@ -14,7 +13,7 @@ private const val TAG = "ConnectionResolver.kt"
 class ConnectionResolver {
 
     private val probeClient = OkHttpClient.Builder()
-        .connectTimeout(2, java.util.concurrent.TimeUnit.SECONDS)
+        .connectTimeout(2, java.util.concurrent.TimeUnit.SECONDS) // Short timeout for probing
         .readTimeout(2, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
@@ -22,32 +21,35 @@ class ConnectionResolver {
         val errors = mutableListOf<String>()
         val candidates = mutableListOf<String>()
 
-        val intProtocol = if (profile.useSsl) "https" else "http"
-        if (profile.intUrl.isNotBlank()) {
-            candidates.add("$intProtocol://${profile.intUrl}:${profile.port}")
+        val protocol = if (profile.useSsl) "https" else "http"
+        val defaultPort = if (profile.useSsl) 443 else 80
+        val portPart = if (profile.port == defaultPort || profile.port == 0) "" else ":${profile.port}"
+
+        // Prioritize External URL as requested
+        if (profile.extUrl.isNotBlank()) {
+            candidates.add("$protocol://${profile.extUrl}$portPart")
         }
         
-        if (profile.extUrl.isNotBlank()) {
-            val extProtocol = if (profile.useSsl) "https" else "http"
-            candidates.add("$extProtocol://${profile.extUrl}:${profile.port}")
-        }
+        // Internal URL acts as fallback
+        //if (profile.intUrl.isNotBlank()) {
+        //    candidates.add("$protocol://${profile.intUrl}$portPart")
+        //}
 
         for (baseUrl in candidates) {
             try {
-                // We use an empty POST request to probe the server, as login.php only accepts POST.
-                // An empty POST will likely return 400 (Invalid JSON) or 401, but not 405.
-                val emptyBody = "".toRequestBody(null)
+                Log.d(TAG, "[resolve]: calling request.Bilder)")
+                // We use a simple GET request to check if the server is alive
                 val request = Request.Builder()
                     .url("$baseUrl/login.php")
-                    .post(emptyBody)
+                    .get()
                     .build()
 
                 probeClient.newCall(request).execute().use { response ->
-                    // 200, 400, 401 all indicate the server is responsive and the endpoint exists.
-                    if (response.isSuccessful || response.code == 400 || response.code == 401) {
+                    // 200, 400, 401, 405, and even 500 prove the host is REACHABLE.
+                    // If the server crashes (500), it's still the correct host.
+                    if (response.code < 600) {
+                        Log.d(TAG, "Host reachable: $baseUrl (Status: ${response.code})")
                         return@withContext baseUrl
-                    } else {
-                        errors.add("$baseUrl: HTTP ${response.code}")
                     }
                 }
             } catch (e: IOException) {
@@ -58,7 +60,7 @@ class ConnectionResolver {
         }
         
         val errorDetail = if (errors.isEmpty()) "Keine URLs konfiguriert" else errors.joinToString("\n")
-        Log.e(TAG, errorDetail)
+        Log.e(TAG, "All candidates failed:\n$errorDetail")
         throw Exception("Verbindung fehlgeschlagen:\n$errorDetail")
     }
 }

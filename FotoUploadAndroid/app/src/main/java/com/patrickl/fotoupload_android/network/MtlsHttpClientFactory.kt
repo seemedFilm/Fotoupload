@@ -39,14 +39,37 @@ class MtlsHttpClientFactory(
                 override fun getPrivateKey(alias: String?): PrivateKey? = originalKeyManager.getPrivateKey(alias)
             }
 
-            // 2. Setup TrustManager explicitly loading your CA
+            // 2. Setup TrustManager loading both system and your CA
             val trustStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply { load(null, null) }
-            val caInput = context.resources.openRawResource(R.raw.ca_cert)
-            val cf = CertificateFactory.getInstance("X.509")
-            val caCert = cf.generateCertificate(caInput) as X509Certificate
-            trustStore.setCertificateEntry("ca", caCert)
-            caInput.close()
-            Log.d(TAG, "create: Trusted CA loaded: ${caCert.subjectDN}")
+            
+            // Load System certificates first
+            try {
+                val systemStore = KeyStore.getInstance("AndroidCAStore")
+                systemStore.load(null, null)
+                val aliases = systemStore.aliases()
+                while (aliases.hasMoreElements()) {
+                    val alias = aliases.nextElement()
+                    val cert = systemStore.getCertificate(alias)
+                    if (cert != null) {
+                        trustStore.setCertificateEntry("sys_$alias", cert)
+                    }
+                }
+                Log.d(TAG, "create: System trust anchors loaded")
+            } catch (e: Exception) {
+                Log.w(TAG, "create: Could not load system trust store, falling back to custom only", e)
+            }
+
+            // Load your custom CA
+            try {
+                val caInput = context.resources.openRawResource(R.raw.ca_cert)
+                val cf = CertificateFactory.getInstance("X.509")
+                val caCert = cf.generateCertificate(caInput) as X509Certificate
+                trustStore.setCertificateEntry("ca_custom", caCert)
+                caInput.close()
+                Log.d(TAG, "create: Custom Trusted CA loaded: ${caCert.subjectDN}")
+            } catch (e: Exception) {
+                Log.e(TAG, "create: Failed to load R.raw.ca_cert", e)
+            }
 
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(trustStore)
@@ -60,6 +83,8 @@ class MtlsHttpClientFactory(
                 .sslSocketFactory(sslContext.socketFactory, trustManager)
                 .hostnameVerifier { hostname, _ -> 
                     Log.d(TAG, "Verifying hostname: $hostname")
+                    // Note: Returning true here bypasses hostname verification. 
+                    // In production, you should usually use the default verifier or check properly.
                     true 
                 }
                 .build()

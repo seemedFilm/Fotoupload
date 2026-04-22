@@ -28,7 +28,8 @@ fun HomeScreenPreview() {
     HomeScreen(
         onOpenConnections = {},
         onOpenSettings = {},
-        onOpenPictureList = {}
+        onOpenPictureList = {},
+        onOpenUploading = {}
     )
 }
 
@@ -39,7 +40,8 @@ fun HomeScreen(
     connectionViewModel: ConnectionViewModel? = null,
     onOpenPictureList: () -> Unit,
     onOpenConnections: () -> Unit,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onOpenUploading: () -> Unit
 ) {
     val activeConnection =
         connectionViewModel?.activeConnection?.collectAsState()?.value
@@ -136,9 +138,10 @@ fun HomeScreen(
             // -- HOCHLADEN BUTTON --
             Button(
                 onClick = {
-                    activeConnection?.let { uploadViewModel.uploadImages(context, it) }
+                    // activeConnection?.let { uploadViewModel.uploadImages(context, it) }
+                    onOpenUploading()
                 },
-                enabled = uiState.selectedImages.isNotEmpty() && !uiState.isUploading,
+                enabled = activeConnection != null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
