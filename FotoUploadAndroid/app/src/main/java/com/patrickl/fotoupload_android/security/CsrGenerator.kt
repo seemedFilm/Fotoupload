@@ -41,9 +41,7 @@ object CsrGenerator {
             val subject = X500Name("CN=$commonName")
             val csrBuilder = JcaPKCS10CertificationRequestBuilder(subject, publicKey)
             
-            // Explicitly set the provider to "AndroidKeyStore" to avoid provider mismatch issues
             val signer = JcaContentSignerBuilder("SHA256withRSA")
-                .setProvider(ANDROID_KEYSTORE)
                 .build(privateKey)
             
             val csr: PKCS10CertificationRequest = csrBuilder.build(signer)
